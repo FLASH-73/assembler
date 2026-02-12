@@ -22,5 +22,9 @@ class AssemblyError(NextisError):
     """Assembly graph invalid or execution failure."""
 
 
+class CADParseError(NextisError):
+    """STEP file parsing or tessellation failure."""
+
+
 class SafetyError(NextisError):
     """Safety limit exceeded -- motors will be disabled."""

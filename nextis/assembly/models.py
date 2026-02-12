@@ -33,6 +33,11 @@ class Part(BaseModel):
         cad_file: Path to STEP/IGES CAD file, if available.
         mesh_file: Path to tessellated mesh (glTF/GLB) for 3D viewer.
         grasp_points: List of grasp pose definitions.
+        position: [x, y, z] assembled position in metres.
+        rotation: [rx, ry, rz] euler angles in radians.
+        geometry: Placeholder shape — "box", "cylinder", or "sphere".
+        dimensions: Shape-specific dims (box=[w,h,d], cylinder=[r,h], sphere=[r]).
+        color: Hex colour string for placeholder rendering.
     """
 
     model_config = ConfigDict(populate_by_name=True)
@@ -41,6 +46,11 @@ class Part(BaseModel):
     cad_file: str | None = Field(None, alias="cadFile")
     mesh_file: str | None = Field(None, alias="meshFile")
     grasp_points: list[GraspPoint] = Field(default_factory=list, alias="graspPoints")
+    position: list[float] | None = None
+    rotation: list[float] | None = None
+    geometry: str | None = None
+    dimensions: list[float] | None = None
+    color: str | None = None
 
 
 class SuccessCriteria(BaseModel):

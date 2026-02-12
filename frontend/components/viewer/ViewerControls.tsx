@@ -6,10 +6,13 @@ interface ViewerControlsProps {
   wireframe: boolean;
   onToggleWireframe: () => void;
   animating: boolean;
+  paused: boolean;
   onToggleAnimation: () => void;
   onStepForward: () => void;
   onStepBackward: () => void;
   onResetView: () => void;
+  onReplayDemo: () => void;
+  demoPlayed: boolean;
 }
 
 function IconButton({
@@ -42,11 +45,16 @@ export function ViewerControls({
   wireframe,
   onToggleWireframe,
   animating,
+  paused,
   onToggleAnimation,
   onStepForward,
   onStepBackward,
   onResetView,
+  onReplayDemo,
+  demoPlayed,
 }: ViewerControlsProps) {
+  const showPause = animating && !paused;
+
   return (
     <div className="absolute right-3 top-3 flex flex-col gap-1">
       <IconButton title="Reset view" onClick={onResetView}>
@@ -73,14 +81,25 @@ export function ViewerControls({
 
       <div className="my-1 h-px bg-bg-tertiary" />
 
+      {demoPlayed && (
+        <IconButton title="Replay demo" onClick={onReplayDemo}>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+            <path d="M2.5 8a5.5 5.5 0 0 1 9.5-3.75" />
+            <path d="M13.5 8a5.5 5.5 0 0 1-9.5 3.75" />
+            <path d="M12 2v2.5h-2.5" />
+            <path d="M5 8l-2 2 2 2" />
+          </svg>
+        </IconButton>
+      )}
+
       <IconButton title="Step backward" onClick={onStepBackward}>
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
           <path d="M10 12L6 8L10 4" />
         </svg>
       </IconButton>
 
-      <IconButton title={animating ? "Pause" : "Play"} active={animating} onClick={onToggleAnimation}>
-        {animating ? (
+      <IconButton title={showPause ? "Pause" : "Play"} active={animating} onClick={onToggleAnimation}>
+        {showPause ? (
           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
             <rect x="4" y="3" width="3" height="10" rx="0.5" />
             <rect x="9" y="3" width="3" height="10" rx="0.5" />

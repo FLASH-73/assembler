@@ -512,7 +512,7 @@ Sequencer.start()
 
 **See `docs/frontend.md` for complete design system, layout, and component guidelines.**
 
-The product name is **Manus**. The frontend is a bright, clean Next.js app — not a dark hacker tool. One main screen with a split layout: 3D assembly viewer + assembly DAG + step detail. Warm white background, color only where it carries information.
+The product name is **AURA** (Autonomous Universal Robotic Assembly). AIRA is the arm. AURA is the brain. The frontend is a bright, clean Next.js app — not a dark hacker tool. One main screen with a split layout: 3D assembly viewer + assembly DAG + step detail. Warm white background, color only where it carries information.
 
 Tech stack: Next.js 15, React 19, Tailwind CSS, `@react-three/fiber`, React Flow, Recharts, WebSocket for real-time data. TypeScript strict mode. No component libraries.
 

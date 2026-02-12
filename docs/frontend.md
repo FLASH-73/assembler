@@ -1,11 +1,11 @@
-# Manus — Frontend Design System
+# AURA — Frontend Design System
 
 ## Product Name
 
-**Manus** — Latin for "hand." Manufacturing means "making by hand." We're building the hands.
+**AURA** — Autonomous Universal Robotic Assembly. AIRA is the arm, AURA is the brain that orchestrates assembly.
 
-CLI commands use `manus`: `manus run`, `manus teach step_003`, `manus status`.
-The frontend header says **Manus** in the wordmark. The page title is "Manus — Assembly Platform."
+CLI commands use `aura`: `aura run`, `aura teach step_003`, `aura status`.
+The frontend header says **AURA** in the wordmark. The page title is "AURA — Assembly Platform."
 
 ---
 
@@ -43,7 +43,7 @@ The frontend header says **Manus** in the wordmark. The page title is "Manus —
   --text-tertiary: #9C9C97;     /* Light grey — timestamps, metadata */
 
   /* Brand */
-  --accent: #E05A1A;            /* Warm deep orange — Manus brand color */
+  --accent: #E05A1A;            /* Warm deep orange — AURA brand color */
   --accent-hover: #C94D15;      /* Darker on hover */
   --accent-light: #FDF0EB;      /* Very light orange — subtle backgrounds */
 
@@ -66,7 +66,7 @@ The frontend header says **Manus** in the wordmark. The page title is "Manus —
 
 ### Usage Rules
 
-- The brand accent (`--accent`) appears in: the Manus wordmark, primary action buttons (Start Assembly, Save), active tab indicators, and selected items. Nowhere else.
+- The brand accent (`--accent`) appears in: the AURA wordmark, primary action buttons (Start Assembly, Save), active tab indicators, and selected items. Nowhere else.
 - Status colors appear ONLY on step status badges, connection indicators, and metric thresholds. Never as background fills for entire sections.
 - Text is always `--text-primary` or `--text-secondary`. Never use status colors for body text.
 - Borders use `--bg-tertiary`. One pixel, solid. No colored borders except on focused inputs (use `--accent`).
@@ -88,7 +88,7 @@ The frontend header says **Manus** in the wordmark. The page title is "Manus —
 
 | Element | Size | Weight | Font | Color |
 |---------|------|--------|------|-------|
-| Page title (Manus wordmark) | 18px | 600 | Sans | `--text-primary` |
+| Page title (AURA wordmark) | 18px | 600 | Sans | `--text-primary` |
 | Section heading | 14px | 600 | Sans | `--text-primary` |
 | Body / labels | 13px | 400 | Sans | `--text-secondary` |
 | Metric value (large) | 32px | 600 | Mono | `--text-primary` |
@@ -116,7 +116,7 @@ This is the ONE screen. Everything happens here. No modals, no page navigation, 
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  MANUS    [Assembly: Bearing Housing v1]       ⏱ 02:34   ▶ ⏸ ■ │  ← Top bar
+│  AURA     [Assembly: Bearing Housing v1]       ⏱ 02:34   ▶ ⏸ ■ │  ← Top bar
 ├─────────────────────────────────────────┬───────────────────────┤
 │                                         │                       │
 │                                         │  Assembly Steps       │
@@ -142,7 +142,7 @@ This is the ONE screen. Everything happens here. No modals, no page navigation, 
 
 ### Top Bar
 
-- Left: **MANUS** wordmark in accent color. Assembly name as a dropdown selector.
+- Left: **AURA** wordmark in accent color. Assembly name as a dropdown selector.
 - Center: Cycle time (large monospace number, counting up during execution).
 - Right: Run controls — Start (▶), Pause (⏸), Stop (■), Intervene (🤚). Only active states are enabled. E-stop button is always visible, always red.
 
@@ -294,7 +294,7 @@ When a STEP file is uploaded and parsed, the 3D viewer should:
 4. "Assemble" — parts animate back together in the proposed sequence order
 5. User sees the assembly plan come alive in seconds
 
-This is the moment someone understands what Manus does. Make it smooth, make it fast, make it feel inevitable.
+This is the moment someone understands what AURA does. Make it smooth, make it fast, make it feel inevitable.
 
 ---
 
@@ -404,7 +404,7 @@ frontend/
 │   ├── page.tsx                # Assembly dashboard (main + only screen)
 │   └── globals.css             # CSS variables, Tailwind config
 ├── components/
-│   ├── TopBar.tsx              # Manus wordmark, assembly selector, controls
+│   ├── TopBar.tsx              # AURA wordmark, assembly selector, controls
 │   ├── BottomBar.tsx           # Metrics strip
 │   ├── viewer/
 │   │   ├── AssemblyViewer.tsx  # Main Three.js canvas + scene setup

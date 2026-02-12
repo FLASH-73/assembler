@@ -56,5 +56,8 @@ out/
 # Calibration data (machine-specific)
 configs/calibration/*/
 
+# Generated mesh files
+data/meshes/
+
 # LeRobot submodule outputs
 lerobot/outputs/

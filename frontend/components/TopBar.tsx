@@ -38,7 +38,7 @@ export function TopBar() {
       {/* Left: wordmark + assembly selector + connection status */}
       <div className="flex items-center gap-4">
         <span className="text-[18px] font-semibold tracking-[0.05em] text-accent">
-          MANUS
+          AURA
         </span>
         <select
           value={assembly?.id ?? ""}

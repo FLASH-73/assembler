@@ -10,10 +10,15 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { ExecutionState, StepRuntimeState } from "@/lib/types";
+import type {
+  ExecutionPhase,
+  ExecutionState,
+  StepRuntimeState,
+} from "@/lib/types";
 import { MOCK_EXECUTION_STATE } from "@/lib/mock-data";
 import { api } from "@/lib/api";
 import { useAssembly } from "./AssemblyContext";
+import { useWebSocket } from "./WebSocketContext";
 
 interface ExecutionContextValue {
   executionState: ExecutionState;
@@ -46,7 +51,9 @@ function makeIdleStepStates(
 
 export function ExecutionProvider({ children }: { children: ReactNode }) {
   const { assembly } = useAssembly();
+  const { lastMessage } = useWebSocket();
   const [state, setState] = useState<ExecutionState>(MOCK_EXECUTION_STATE);
+  const [wsActive, setWsActive] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const stepIndexRef = useRef(0);
 
@@ -57,7 +64,33 @@ export function ExecutionProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Advance mock execution through steps
+  // ---------------------------------------------------------------
+  // WebSocket-driven state updates
+  // ---------------------------------------------------------------
+  useEffect(() => {
+    if (!lastMessage || typeof lastMessage !== "object") return;
+    const msg = lastMessage as Record<string, unknown>;
+    if (msg.type !== "execution_state") return;
+
+    // WS is delivering real state — disable mock timer
+    setWsActive(true);
+    clearTimer();
+
+    setState({
+      phase: (msg.phase as ExecutionPhase) ?? "idle",
+      assemblyId: (msg.assemblyId as string) ?? null,
+      currentStepId: (msg.currentStepId as string) ?? null,
+      stepStates: (msg.stepStates as Record<string, StepRuntimeState>) ?? {},
+      runNumber: (msg.runNumber as number) ?? 0,
+      startTime: (msg.startTime as number) ?? null,
+      elapsedMs: (msg.elapsedMs as number) ?? 0,
+      overallSuccessRate: (msg.overallSuccessRate as number) ?? 0,
+    });
+  }, [lastMessage, clearTimer]);
+
+  // ---------------------------------------------------------------
+  // Mock execution fallback (when WebSocket is unavailable)
+  // ---------------------------------------------------------------
   const advanceStep = useCallback(() => {
     if (!assembly) return;
     setState((prev) => {
@@ -115,6 +148,9 @@ export function ExecutionProvider({ children }: { children: ReactNode }) {
     });
   }, [assembly, clearTimer]);
 
+  // ---------------------------------------------------------------
+  // Execution commands (HTTP → backend, local state as optimistic)
+  // ---------------------------------------------------------------
   const startExecution = useCallback(() => {
     if (!assembly || assembly.stepOrder.length === 0) return;
     clearTimer();
@@ -122,6 +158,7 @@ export function ExecutionProvider({ children }: { children: ReactNode }) {
 
     api.startAssembly(assembly.id).catch(console.warn);
 
+    // Set optimistic local state (overwritten by WS if connected)
     const firstStepId = assembly.stepOrder[0];
     if (!firstStepId) return;
     const idleStates = makeIdleStepStates(assembly.stepOrder);
@@ -145,43 +182,55 @@ export function ExecutionProvider({ children }: { children: ReactNode }) {
       overallSuccessRate: state.overallSuccessRate,
     });
 
-    timerRef.current = setInterval(advanceStep, 5000);
-  }, [assembly, clearTimer, advanceStep, state.runNumber, state.overallSuccessRate]);
+    // Only start mock timer if WS is not delivering real state
+    if (!wsActive) {
+      timerRef.current = setInterval(advanceStep, 5000);
+    }
+  }, [assembly, clearTimer, advanceStep, wsActive, state.runNumber, state.overallSuccessRate]);
 
   const pauseExecution = useCallback(() => {
     api.pauseExecution().catch(console.warn);
     clearTimer();
-    setState((prev) => ({ ...prev, phase: "paused" }));
-  }, [clearTimer]);
+    if (!wsActive) {
+      setState((prev) => ({ ...prev, phase: "paused" }));
+    }
+  }, [clearTimer, wsActive]);
 
   const resumeExecution = useCallback(() => {
-    setState((prev) => ({ ...prev, phase: "running" }));
-    timerRef.current = setInterval(advanceStep, 5000);
-  }, [advanceStep]);
+    api.resumeExecution().catch(console.warn);
+    if (!wsActive) {
+      setState((prev) => ({ ...prev, phase: "running" }));
+      timerRef.current = setInterval(advanceStep, 5000);
+    }
+  }, [advanceStep, wsActive]);
 
   const stopExecution = useCallback(() => {
     api.stopExecution().catch(console.warn);
     clearTimer();
     stepIndexRef.current = 0;
-    setState((prev) => ({
-      ...prev,
-      phase: "idle",
-      currentStepId: null,
-      stepStates: makeIdleStepStates(assembly?.stepOrder ?? []),
-      startTime: null,
-      elapsedMs: 0,
-    }));
-  }, [clearTimer, assembly]);
+    if (!wsActive) {
+      setState((prev) => ({
+        ...prev,
+        phase: "idle",
+        currentStepId: null,
+        stepStates: makeIdleStepStates(assembly?.stepOrder ?? []),
+        startTime: null,
+        elapsedMs: 0,
+      }));
+    }
+  }, [clearTimer, assembly, wsActive]);
 
   const intervene = useCallback(() => {
     api.intervene().catch(console.warn);
     clearTimer();
-    setState((prev) => ({ ...prev, phase: "teaching" }));
-  }, [clearTimer]);
+    if (!wsActive) {
+      setState((prev) => ({ ...prev, phase: "teaching" }));
+    }
+  }, [clearTimer, wsActive]);
 
-  // Elapsed time ticker
+  // Elapsed time ticker (only for mock mode)
   useEffect(() => {
-    if (state.phase !== "running") return;
+    if (wsActive || state.phase !== "running") return;
     const ticker = setInterval(() => {
       setState((prev) => ({
         ...prev,
@@ -189,7 +238,7 @@ export function ExecutionProvider({ children }: { children: ReactNode }) {
       }));
     }, 1000);
     return () => clearInterval(ticker);
-  }, [state.phase]);
+  }, [state.phase, wsActive]);
 
   // Cleanup on unmount
   useEffect(() => () => clearTimer(), [clearTimer]);

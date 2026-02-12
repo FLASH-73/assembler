@@ -80,6 +80,7 @@ export const api = {
   // --- Execution ---
   startAssembly: (id: string) => post("/execution/start", { assembly_id: id }),
   pauseExecution: () => post("/execution/pause"),
+  resumeExecution: () => post("/execution/resume"),
   stopExecution: () => post("/execution/stop"),
   intervene: () => post("/execution/intervene"),
 

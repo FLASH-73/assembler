@@ -1,23 +1,26 @@
 "use client";
 
-import { useRef } from "react";
+import { Suspense, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Edges } from "@react-three/drei";
-import type { Mesh } from "three";
+import { Edges, useGLTF } from "@react-three/drei";
+import type { Group, MeshStandardMaterial } from "three";
 import type { Part } from "@/lib/types";
+import type { PartRenderState } from "@/lib/animation";
 import { GraspPoint } from "./GraspPoint";
 
-type PartState = "ghost" | "active" | "complete" | "selected";
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
 
-interface PartMeshProps {
-  part: Part;
-  state: PartState;
-  exploded: boolean;
-  wireframeOverlay: boolean;
-  onClick: () => void;
-}
+const GHOST_COLOR = "#D4D4D0";
+const COMPLETE_COLOR = "#C8C8C4";
+const ACCENT_COLOR = "#E05A1A";
 
-function PartGeometry({ geometry, dimensions }: { geometry: string; dimensions: number[] }) {
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
+
+function PlaceholderGeometry({ geometry, dimensions }: { geometry: string; dimensions: number[] }) {
   switch (geometry) {
     case "cylinder":
       return <cylinderGeometry args={[dimensions[0], dimensions[0], dimensions[1], 32]} />;
@@ -28,68 +31,107 @@ function PartGeometry({ geometry, dimensions }: { geometry: string; dimensions: 
   }
 }
 
-const GHOST_COLOR = "#D4D4D0";
-const COMPLETE_COLOR = "#C8C8C4";
-const ACCENT_COLOR = "#E05A1A";
+function GlbMesh({ url }: { url: string }) {
+  const { scene } = useGLTF(url);
+  return <primitive object={scene.clone()} />;
+}
 
-export function PartMesh({ part, state, exploded, wireframeOverlay, onClick }: PartMeshProps) {
-  const meshRef = useRef<Mesh>(null);
-  const pos = part.position ?? [0, 0, 0];
+// ---------------------------------------------------------------------------
+// PartMesh
+// ---------------------------------------------------------------------------
+
+interface PartMeshProps {
+  part: Part;
+  renderStatesRef: React.RefObject<Record<string, PartRenderState>>;
+  selectedStepId: string | null;
+  firstStepIdForPart: string | null;
+  wireframeOverlay: boolean;
+  onClick: () => void;
+}
+
+export function PartMesh({
+  part,
+  renderStatesRef,
+  selectedStepId,
+  firstStepIdForPart,
+  wireframeOverlay,
+  onClick,
+}: PartMeshProps) {
+  const groupRef = useRef<Group>(null);
+  const matRef = useRef<MeshStandardMaterial>(null);
   const dims = part.dimensions ?? [0.05, 0.05, 0.05];
 
-  // Explode offset: move parts up along Y
-  const explodeOffset = exploded ? 0.06 : 0;
-  const position: [number, number, number] = [
-    pos[0],
-    pos[1] + explodeOffset,
-    pos[2],
-  ];
+  // Track visual state for conditional rendering (edges, grasps)
+  const visualRef = useRef<"ghost" | "active" | "complete">("complete");
 
-  // Pulse animation for active state
   useFrame(({ clock }) => {
-    if (meshRef.current && state === "active") {
-      const mat = meshRef.current.material;
-      if ("opacity" in mat) {
-        (mat as { opacity: number }).opacity = 0.85 + 0.15 * Math.sin(clock.elapsedTime * Math.PI);
-      }
+    const rs = renderStatesRef.current?.[part.id];
+    if (!groupRef.current || !matRef.current || !rs) return;
+
+    // Position
+    groupRef.current.position.set(rs.position[0], rs.position[1], rs.position[2]);
+
+    // Determine effective state — selection overrides animation
+    const isSelected = selectedStepId != null && selectedStepId === firstStepIdForPart;
+    const effectiveState = isSelected ? "active" : rs.visualState;
+    visualRef.current = effectiveState;
+
+    // Opacity — pulse for active
+    const isGhost = effectiveState === "ghost";
+    let opacity = rs.opacity;
+    if (effectiveState === "active") {
+      opacity = 0.85 + 0.15 * Math.sin(clock.elapsedTime * Math.PI);
+    } else if (isGhost) {
+      opacity = Math.min(opacity, 0.12);
+    }
+
+    matRef.current.opacity = opacity;
+    matRef.current.transparent = isGhost || effectiveState === "active" || opacity < 1;
+    matRef.current.wireframe = isGhost || wireframeOverlay;
+
+    // Color
+    if (isGhost) {
+      matRef.current.color.set(GHOST_COLOR);
+    } else if (effectiveState === "complete" && !isSelected) {
+      matRef.current.color.set(COMPLETE_COLOR);
+    } else {
+      matRef.current.color.set(part.color ?? "#B0AEA8");
     }
   });
 
-  const isGhost = state === "ghost";
-  const showEdges = state === "active" || state === "selected";
-  const showGrasps = state === "selected";
-
-  const color = isGhost
-    ? GHOST_COLOR
-    : state === "complete"
-      ? COMPLETE_COLOR
-      : (part.color ?? "#B0AEA8");
+  const showEdges = visualRef.current === "active";
+  const isSelected = selectedStepId != null && selectedStepId === firstStepIdForPart;
+  const showGrasps = isSelected;
 
   return (
-    <group position={position}>
+    <group ref={groupRef}>
       <mesh
-        ref={meshRef}
         onClick={(e) => {
           e.stopPropagation();
           onClick();
         }}
         castShadow
       >
-        <PartGeometry geometry={part.geometry ?? "box"} dimensions={dims} />
+        {part.meshFile ? (
+          <Suspense fallback={<PlaceholderGeometry geometry={part.geometry ?? "box"} dimensions={dims} />}>
+            <GlbMesh url={part.meshFile} />
+          </Suspense>
+        ) : (
+          <PlaceholderGeometry geometry={part.geometry ?? "box"} dimensions={dims} />
+        )}
         <meshStandardMaterial
-          color={color}
+          ref={matRef}
+          color={part.color ?? "#B0AEA8"}
           roughness={0.6}
           metalness={0.1}
-          transparent={isGhost || state === "active"}
-          opacity={isGhost ? 0.12 : 1}
-          wireframe={isGhost || wireframeOverlay}
+          transparent
+          opacity={1}
         />
-        {showEdges && <Edges color={ACCENT_COLOR} linewidth={2} />}
+        {(showEdges || isSelected) && <Edges color={ACCENT_COLOR} linewidth={2} />}
       </mesh>
 
-      {/* Grasp points */}
       {showGrasps &&
-        part.graspPoints.map((gp, i) => (
+        part.graspPoints.map((_, i) => (
           <GraspPoint key={i} position={[0, dims[1] ? dims[1] / 2 : 0.02, 0]} index={i} />
         ))}
     </group>

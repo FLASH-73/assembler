@@ -1,18 +1,19 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment } from "@react-three/drei";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { useAssembly } from "@/context/AssemblyContext";
 import { useExecution } from "@/context/ExecutionContext";
+import { partStepIndex } from "@/lib/animation";
+import { useAnimationControls } from "@/lib/useAnimationControls";
 import { GroundPlane } from "./GroundPlane";
 import { PartMesh } from "./PartMesh";
 import { ApproachVector } from "./ApproachVector";
+import { AnimationController } from "./AnimationController";
 import { ViewerControls } from "./ViewerControls";
 import { AnimationTimeline } from "./AnimationTimeline";
-
-type PartState = "ghost" | "active" | "complete" | "selected";
 
 export function AssemblyViewer() {
   const { assembly, selectedStepId, selectStep } = useAssembly();
@@ -21,130 +22,85 @@ export function AssemblyViewer() {
 
   const [exploded, setExploded] = useState(false);
   const [wireframe, setWireframe] = useState(false);
-  const [animating, setAnimating] = useState(false);
-  const [animationStep, setAnimationStep] = useState(0);
 
-  const totalSteps = assembly?.stepOrder.length ?? 0;
+  const parts = useMemo(() => (assembly ? Object.values(assembly.parts) : []), [assembly]);
+  const stepOrder = assembly?.stepOrder ?? [];
+  const steps = assembly?.steps ?? {};
+  const totalSteps = stepOrder.length;
 
-  // Animation timer
+  const anim = useAnimationControls(assembly?.id, totalSteps);
+
+  // Pre-compute part → first step id mapping
+  const partToStepId = useMemo(() => {
+    const map: Record<string, string | null> = {};
+    if (!assembly) return map;
+    for (const part of parts) {
+      const idx = partStepIndex(part.id, assembly.stepOrder, assembly.steps);
+      map[part.id] = idx >= 0 ? (assembly.stepOrder[idx] ?? null) : null;
+    }
+    return map;
+  }, [assembly, parts]);
+
+  // Force idle during live execution
   useEffect(() => {
-    if (!animating) return;
-    const interval = setInterval(() => {
-      setAnimationStep((prev) => {
-        const next = prev + 1;
-        if (next >= totalSteps) {
-          setAnimating(false);
-          return totalSteps - 1;
-        }
-        return next;
-      });
-    }, 800);
-    return () => clearInterval(interval);
-  }, [animating, totalSteps]);
-
-  // Determine which visual state each part should have
-  const getPartState = useCallback(
-    (partId: string): PartState => {
-      if (!assembly) return "ghost";
-
-      // If selected and matches the selected step's parts
-      if (selectedStepId) {
-        const selStep = assembly.steps[selectedStepId];
-        if (selStep?.partIds.includes(partId)) return "selected";
-      }
-
-      const isRunning = executionState.phase === "running" || executionState.phase === "paused";
-
-      if (isRunning) {
-        // Find which step this part belongs to
-        for (const stepId of assembly.stepOrder) {
-          const step = assembly.steps[stepId];
-          if (!step?.partIds.includes(partId)) continue;
-          const rs = executionState.stepStates[stepId];
-          if (!rs) continue;
-          if (rs.status === "success") return "complete";
-          if (rs.status === "running" || rs.status === "retrying" || rs.status === "human") {
-            return "active";
-          }
-          return "ghost";
-        }
-        return "ghost";
-      }
-
-      // Animation mode
-      if (animating || animationStep > 0) {
-        for (let i = 0; i < assembly.stepOrder.length; i++) {
-          const stepId = assembly.stepOrder[i];
-          if (!stepId) continue;
-          const step = assembly.steps[stepId];
-          if (!step?.partIds.includes(partId)) continue;
-          if (i < animationStep) return "complete";
-          if (i === animationStep) return "active";
-          return "ghost";
-        }
-      }
-
-      return "ghost";
-    },
-    [assembly, selectedStepId, executionState, animationStep, animating],
-  );
+    if (executionState.phase === "running" || executionState.phase === "paused") {
+      anim.forceIdle();
+    }
+  }, [executionState.phase, anim]);
 
   const handlePartClick = useCallback(
     (partId: string) => {
       if (!assembly) return;
-      // Find the first step that references this part
-      const stepId = assembly.stepOrder.find((sid) => {
-        const step = assembly.steps[sid];
-        return step?.partIds.includes(partId);
-      });
+      const stepId = assembly.stepOrder.find((sid) => assembly.steps[sid]?.partIds.includes(partId));
       selectStep(stepId ?? null);
     },
     [assembly, selectStep],
   );
 
-  const handleResetView = useCallback(() => {
-    controlsRef.current?.reset();
-  }, []);
-
   return (
     <div className="relative h-full w-full">
       <Canvas
-        camera={{
-          position: [0.15, 0.12, 0.15],
-          fov: 45,
-          near: 0.001,
-          far: 10,
-        }}
+        camera={{ position: [0.15, 0.12, 0.15], fov: 45, near: 0.001, far: 10 }}
         style={{ background: "#F5F5F3" }}
       >
         <ambientLight intensity={0.5} />
         <directionalLight position={[5, 8, 3]} intensity={0.8} />
         <Environment preset="studio" environmentIntensity={0.3} />
-
         <GroundPlane />
 
+        <AnimationController
+          parts={parts}
+          stepOrder={stepOrder}
+          steps={steps}
+          exploded={exploded}
+          animStateRef={anim.animStateRef}
+          renderStatesRef={anim.renderStatesRef}
+          scrubberProgressRef={anim.scrubberProgressRef}
+          onPhaseChange={anim.onPhaseChange}
+        />
+
         {assembly &&
-          Object.values(assembly.parts).map((part) => {
-            const state = getPartState(part.id);
-            return (
-              <group key={part.id}>
-                <PartMesh
-                  part={part}
-                  state={state}
-                  exploded={exploded}
-                  wireframeOverlay={wireframe}
-                  onClick={() => handlePartClick(part.id)}
+          parts.map((part) => (
+            <group key={part.id}>
+              <PartMesh
+                part={part}
+                renderStatesRef={anim.renderStatesRef}
+                selectedStepId={selectedStepId}
+                firstStepIdForPart={partToStepId[part.id] ?? null}
+                wireframeOverlay={wireframe}
+                onClick={() => handlePartClick(part.id)}
+              />
+              {selectedStepId === partToStepId[part.id] && part.graspPoints[0] && (
+                <ApproachVector
+                  origin={(part.position as [number, number, number]) ?? [0, 0, 0]}
+                  direction={
+                    (part.graspPoints[0].approach as [number, number, number]) ?? [0, -1, 0]
+                  }
+                  length={0.04}
                 />
-                {(state === "active" || state === "selected") && part.graspPoints[0] && (
-                  <ApproachVector
-                    origin={part.position ?? [0, 0, 0]}
-                    direction={(part.graspPoints[0].approach as [number, number, number]) ?? [0, -1, 0]}
-                    length={0.04}
-                  />
-                )}
-              </group>
-            );
-          })}
+              )}
+            </group>
+          ))}
 
         <OrbitControls
           ref={controlsRef}
@@ -161,27 +117,23 @@ export function AssemblyViewer() {
         onToggleExplode={() => setExploded((e) => !e)}
         wireframe={wireframe}
         onToggleWireframe={() => setWireframe((w) => !w)}
-        animating={animating}
-        onToggleAnimation={() => {
-          if (!animating) {
-            setAnimationStep(0);
-            setAnimating(true);
-          } else {
-            setAnimating(false);
-          }
-        }}
-        onStepForward={() =>
-          setAnimationStep((s) => Math.min(s + 1, totalSteps - 1))
-        }
-        onStepBackward={() => setAnimationStep((s) => Math.max(s - 1, 0))}
-        onResetView={handleResetView}
+        animating={anim.isAnimating}
+        paused={anim.isPaused}
+        onToggleAnimation={anim.toggleAnimation}
+        onStepForward={anim.stepForward}
+        onStepBackward={anim.stepBackward}
+        onResetView={() => controlsRef.current?.reset()}
+        onReplayDemo={anim.replayDemo}
+        demoPlayed={anim.demoPlayed}
       />
 
-      {(animating || animationStep > 0) && (
+      {(anim.isAnimating || anim.demoPlayed) && (
         <AnimationTimeline
-          currentStep={animationStep}
           totalSteps={totalSteps}
-          onScrub={setAnimationStep}
+          scrubberProgressRef={anim.scrubberProgressRef}
+          onScrub={anim.scrub}
+          onScrubStart={anim.scrubStart}
+          onScrubEnd={anim.scrubEnd}
         />
       )}
     </div>

@@ -1,24 +1,37 @@
 """Assembly CRUD routes.
 
 Assemblies are stored as JSON files in configs/assemblies/.
+STEP file uploads are parsed into assemblies via CADParser.
 """
 
 from __future__ import annotations
 
 import logging
+import shutil
+import tempfile
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, File, HTTPException, UploadFile
 
 from nextis.api.schemas import AssemblySummary
 from nextis.assembly.models import AssemblyGraph
+from nextis.errors import CADParseError
 
 logger = logging.getLogger(__name__)
+
+try:
+    from nextis.assembly.cad_parser import CADParser
+    from nextis.assembly.sequence_planner import SequencePlanner
+
+    HAS_PARSER = True
+except Exception:
+    HAS_PARSER = False
 
 router = APIRouter()
 
 CONFIGS_DIR = Path(__file__).resolve().parents[3] / "configs" / "assemblies"
+MESHES_DIR = Path(__file__).resolve().parents[3] / "data" / "meshes"
 
 
 def _find_assembly_path(assembly_id: str) -> Path:
@@ -96,3 +109,66 @@ async def update_step(
     graph.to_json_file(path)
     logger.info("Updated step %s in assembly %s", step_id, assembly_id)
     return {"status": "updated"}
+
+
+@router.post("/upload", status_code=201)
+async def upload_step_file(file: UploadFile = File(...)) -> dict[str, Any]:  # noqa: B008
+    """Parse a STEP file and create an assembly with GLB meshes.
+
+    Accepts a multipart form upload of a .step/.stp file. Parses geometry,
+    generates GLB meshes, plans an initial assembly sequence, and returns
+    the full AssemblyGraph.
+
+    Args:
+        file: Uploaded STEP file (.step or .stp).
+
+    Returns:
+        Full assembly graph with camelCase keys.
+    """
+    if not HAS_PARSER:
+        raise HTTPException(
+            status_code=400,
+            detail="CAD parsing unavailable. Install pythonocc-core via conda.",
+        )
+
+    filename = file.filename or "unknown.step"
+    suffix = Path(filename).suffix.lower()
+    if suffix not in {".step", ".stp"}:
+        raise HTTPException(status_code=400, detail=f"Expected .step/.stp file, got '{suffix}'")
+
+    # Save upload to temp file
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+        tmp_path = Path(tmp.name)
+        shutil.copyfileobj(file.file, tmp)
+
+    try:
+        parser = CADParser()
+        assembly_id = Path(filename).stem.lower().replace(" ", "_").replace("-", "_")
+        mesh_dir = MESHES_DIR / assembly_id
+
+        parse_result = parser.parse(tmp_path, mesh_dir, assembly_name=Path(filename).stem)
+
+        planner = SequencePlanner()
+        graph = planner.plan(parse_result)
+
+        # Check for duplicates
+        json_path = CONFIGS_DIR / f"{graph.id}.json"
+        if json_path.exists():
+            raise HTTPException(
+                status_code=409,
+                detail=f"Assembly '{graph.id}' already exists",
+            )
+
+        graph.to_json_file(json_path)
+        logger.info("Created assembly '%s' from uploaded STEP file", graph.id)
+        return graph.model_dump(by_alias=True)
+
+    except HTTPException:
+        raise
+    except CADParseError as e:
+        raise HTTPException(status_code=422, detail=str(e)) from e
+    except Exception as e:
+        logger.error("STEP upload failed: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal parsing error") from e
+    finally:
+        tmp_path.unlink(missing_ok=True)

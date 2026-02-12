@@ -8,7 +8,11 @@
       "meshFile": null,
       "graspPoints": [
         {"pose": [0, 0.04, 0, 0, 0, 0], "approach": [0, -1, 0]}
-      ]
+      ],
+      "position": [0, 0.02, 0],
+      "geometry": "box",
+      "dimensions": [0.08, 0.04, 0.06],
+      "color": "#B0AEA8"
     },
     "bearing": {
       "id": "bearing",
@@ -16,13 +20,21 @@
       "meshFile": null,
       "graspPoints": [
         {"pose": [0, 0.05, 0, 0, 0, 0], "approach": [0, -1, 0]}
-      ]
+      ],
+      "position": [0, 0.05, 0],
+      "geometry": "cylinder",
+      "dimensions": [0.015, 0.01],
+      "color": "#8A8884"
     },
     "fixture": {
       "id": "fixture",
       "cadFile": null,
       "meshFile": null,
-      "graspPoints": []
+      "graspPoints": [],
+      "position": [0, -0.01, 0],
+      "geometry": "box",
+      "dimensions": [0.1, 0.02, 0.08],
+      "color": "#D4D3CF"
     },
     "pin_1": {
       "id": "pin_1",
@@ -30,7 +42,11 @@
       "meshFile": null,
       "graspPoints": [
         {"pose": [-0.025, 0.04, 0, 0, 0, 0], "approach": [0, -1, 0]}
-      ]
+      ],
+      "position": [-0.025, 0.045, 0],
+      "geometry": "cylinder",
+      "dimensions": [0.003, 0.015],
+      "color": "#7A7974"
     },
     "pin_2": {
       "id": "pin_2",
@@ -38,7 +54,11 @@
       "meshFile": null,
       "graspPoints": [
         {"pose": [0.025, 0.04, 0, 0, 0, 0], "approach": [0, -1, 0]}
-      ]
+      ],
+      "position": [0.025, 0.045, 0],
+      "geometry": "cylinder",
+      "dimensions": [0.003, 0.015],
+      "color": "#7A7974"
     }
   },
   "steps": {

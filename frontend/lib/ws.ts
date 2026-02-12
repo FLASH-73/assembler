@@ -1,6 +1,6 @@
 export type MessageHandler = (data: unknown) => void;
 
-export class ManusWebSocket {
+export class AuraWebSocket {
   private url: string;
   private ws: WebSocket | null = null;
   private handlers: Set<MessageHandler> = new Set();

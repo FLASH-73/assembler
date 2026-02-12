@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Manus \u2014 Assembly Platform",
+  title: "AURA \u2014 Assembly Platform",
   description: "CAD-driven assembly automation",
 };
 

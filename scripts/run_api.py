@@ -1,4 +1,4 @@
-"""Start the Manus API server."""
+"""Start the AURA API server."""
 
 import os
 import sys
