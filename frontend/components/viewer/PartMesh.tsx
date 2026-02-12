@@ -13,6 +13,7 @@ interface PartMeshProps {
   part: Part;
   state: PartState;
   exploded: boolean;
+  wireframeOverlay: boolean;
   onClick: () => void;
 }
 
@@ -31,7 +32,7 @@ const GHOST_COLOR = "#D4D4D0";
 const COMPLETE_COLOR = "#C8C8C4";
 const ACCENT_COLOR = "#E05A1A";
 
-export function PartMesh({ part, state, exploded, onClick }: PartMeshProps) {
+export function PartMesh({ part, state, exploded, wireframeOverlay, onClick }: PartMeshProps) {
   const meshRef = useRef<Mesh>(null);
   const pos = part.position ?? [0, 0, 0];
   const dims = part.dimensions ?? [0.05, 0.05, 0.05];
@@ -81,7 +82,7 @@ export function PartMesh({ part, state, exploded, onClick }: PartMeshProps) {
           metalness={0.1}
           transparent={isGhost || state === "active"}
           opacity={isGhost ? 0.12 : 1}
-          wireframe={isGhost}
+          wireframe={isGhost || wireframeOverlay}
         />
         {showEdges && <Edges color={ACCENT_COLOR} linewidth={2} />}
       </mesh>

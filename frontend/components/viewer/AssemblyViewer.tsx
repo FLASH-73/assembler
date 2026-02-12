@@ -132,6 +132,7 @@ export function AssemblyViewer() {
                   part={part}
                   state={state}
                   exploded={exploded}
+                  wireframeOverlay={wireframe}
                   onClick={() => handlePartClick(part.id)}
                 />
                 {(state === "active" || state === "selected") && part.graspPoints[0] && (
