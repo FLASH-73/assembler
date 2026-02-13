@@ -246,6 +246,36 @@ class SequencePlanner:
         return result
 
 
+_PRIMITIVE_HANDLER_TYPES = {"move_to", "pick", "place"}
+_POLICY_HANDLER_TYPES = {"linear_insert", "press_fit", "screw", "guarded_move"}
+
+
+def assign_handlers(graph: AssemblyGraph) -> AssemblyGraph:
+    """Auto-assign step handlers based on primitive_type.
+
+    Rules:
+        - move_to / pick / place -> handler="primitive" (geometric motions).
+        - linear_insert / press_fit / screw / guarded_move -> handler="policy"
+          (contact-rich tasks that benefit from learned policies).
+        - primitive_type is None and handler already set -> unchanged.
+        - primitive_type is None and handler is missing -> default to "policy".
+
+    Args:
+        graph: Assembly graph to update (mutated in-place).
+
+    Returns:
+        The same graph with updated handlers.
+    """
+    for step in graph.steps.values():
+        if step.primitive_type in _PRIMITIVE_HANDLER_TYPES:
+            step.handler = "primitive"
+        elif step.primitive_type in _POLICY_HANDLER_TYPES or (
+            step.primitive_type is None and not step.handler
+        ):
+            step.handler = "policy"
+    return graph
+
+
 def _part_volume(part: object) -> float:
     """Estimate part volume from its dimensions."""
     from nextis.assembly.models import Part

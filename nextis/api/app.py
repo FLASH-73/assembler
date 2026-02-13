@@ -20,6 +20,7 @@ from nextis.api.routes import (
     hardware,
     homing,
     recording,
+    rl_training,
     teleop,
     training,
 )
@@ -44,6 +45,7 @@ app.include_router(recording.router, prefix="/recording", tags=["recording"])
 app.include_router(training.router, prefix="/training", tags=["training"])
 app.include_router(hardware.router, prefix="/hardware", tags=["hardware"])
 app.include_router(homing.router, prefix="/homing", tags=["homing"])
+app.include_router(rl_training.router, prefix="/rl", tags=["rl-training"])
 
 # Serve GLB mesh files for the 3D assembly viewer
 _MESHES_DIR = Path(__file__).resolve().parents[2] / "data" / "meshes"

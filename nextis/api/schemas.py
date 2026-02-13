@@ -245,3 +245,34 @@ class HomingStartRequest(BaseModel):
     home_pos: dict[str, float] | None = Field(None, alias="homePos")
     duration: float = 10.0
     velocity: float = 0.05
+
+
+# ------------------------------------------------------------------
+# RL Training schemas
+# ------------------------------------------------------------------
+
+
+class RLStartRequest(BaseModel):
+    """Request body for starting RL fine-tuning."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    assembly_id: str = Field(alias="assemblyId")
+    max_episodes: int = Field(50, alias="maxEpisodes")
+    movement_scale: float = Field(0.5, alias="movementScale")
+
+
+class RLTrainingState(BaseModel):
+    """State of an RL fine-tuning session."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    status: str = "idle"
+    step_id: str | None = Field(None, alias="stepId")
+    episode: int = 0
+    total_episodes: int = 0
+    success_rate: float = Field(0.0, alias="successRate")
+    intervention_rate: float = Field(0.0, alias="interventionRate")
+    critic_loss: float = Field(0.0, alias="criticLoss")
+    actor_loss: float = Field(0.0, alias="actorLoss")
+    buffer_size: int = Field(0, alias="bufferSize")

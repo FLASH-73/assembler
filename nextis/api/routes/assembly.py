@@ -166,6 +166,11 @@ async def upload_step_file(file: UploadFile = File(...)) -> dict[str, Any]:  # n
         planner = SequencePlanner()
         graph = planner.plan(parse_result)
 
+        # Auto-assign handlers based on primitive_type
+        from nextis.assembly.sequence_planner import assign_handlers
+
+        graph = assign_handlers(graph)
+
         json_path = CONFIGS_DIR / f"{graph.id}.json"
         graph.to_json_file(json_path)
         logger.info("Created assembly '%s' from uploaded STEP file", graph.id)

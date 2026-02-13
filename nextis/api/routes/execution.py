@@ -116,10 +116,16 @@ async def start_execution(request: StartRequest) -> dict[str, str]:
     graph = AssemblyGraph.from_json_file(path)
     logger.info("Loaded assembly '%s' with %d steps", graph.name, len(graph.step_order))
 
-    # Build router with stub primitives (no real robot yet)
+    # Build router — robot=None keeps primitives as stubs; assembly_id enables
+    # policy loading.  PolicyRouter creates a MockRobot internally when it needs
+    # observations for policy inference and no real robot is connected.
     speed_factor = 1.0 / request.speed
     primitives = PrimitiveLibrary(speed_factor=speed_factor)
-    policy_router = PolicyRouter(primitive_library=primitives, robot=None)
+    policy_router = PolicyRouter(
+        primitive_library=primitives,
+        robot=None,
+        assembly_id=request.assembly_id,
+    )
     _analytics_store = AnalyticsStore(root=ANALYTICS_DIR)
 
     _sequencer = Sequencer(
