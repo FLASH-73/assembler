@@ -42,9 +42,17 @@ function SuggestionRow({ suggestion, onApply, onDismiss }: SuggestionRowProps) {
         </div>
       </div>
       <div className="flex items-center gap-2 text-[11px]">
-        <span className="text-text-tertiary line-through">{suggestion.oldValue}</span>
+        <span className="text-text-tertiary line-through">
+          {typeof suggestion.oldValue === "object"
+            ? JSON.stringify(suggestion.oldValue)
+            : suggestion.oldValue}
+        </span>
         <span className="text-text-tertiary">&rarr;</span>
-        <span className="font-medium text-text-primary">{suggestion.newValue}</span>
+        <span className="font-medium text-text-primary">
+          {typeof suggestion.newValue === "object"
+            ? JSON.stringify(suggestion.newValue)
+            : suggestion.newValue}
+        </span>
       </div>
       <p className="text-[11px] text-text-secondary">{suggestion.reason}</p>
     </div>
@@ -84,8 +92,20 @@ export function AnalysisPanel() {
     async (suggestion: PlanSuggestion) => {
       if (!assembly) return;
       try {
+        let value: unknown = suggestion.newValue;
+        if (
+          (suggestion.field === "primitiveParams" ||
+            suggestion.field === "successCriteria") &&
+          typeof value === "string"
+        ) {
+          try {
+            value = JSON.parse(value);
+          } catch {
+            /* keep as string */
+          }
+        }
         await api.updateStep(assembly.id, suggestion.stepId, {
-          [suggestion.field]: suggestion.newValue,
+          [suggestion.field]: value,
         } as Partial<AssemblyStep>);
         setDismissedIds((prev) => new Set(prev).add(suggestion.stepId + suggestion.field));
       } catch {

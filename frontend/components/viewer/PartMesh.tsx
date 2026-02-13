@@ -8,6 +8,7 @@ import { Mesh } from "three";
 import type { Part } from "@/lib/types";
 import type { PartRenderState } from "@/lib/animation";
 import { GraspPoint } from "./GraspPoint";
+import { GlbErrorBoundary, PlaceholderGeometry } from "./GlbErrorBoundary";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -17,21 +18,6 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const GHOST_COLOR = "#D4D4D0";
 const COMPLETE_COLOR = "#C8C8C4";
 const ACCENT_COLOR = "#2563EB";
-
-// ---------------------------------------------------------------------------
-// Sub-components
-// ---------------------------------------------------------------------------
-
-function PlaceholderGeometry({ geometry, dimensions }: { geometry: string; dimensions: number[] }) {
-  switch (geometry) {
-    case "cylinder":
-      return <cylinderGeometry args={[dimensions[0], dimensions[0], dimensions[1], 32]} />;
-    case "sphere":
-      return <sphereGeometry args={[dimensions[0], 32, 32]} />;
-    default:
-      return <boxGeometry args={[dimensions[0], dimensions[1], dimensions[2]]} />;
-  }
-}
 
 function GlbMesh({ url }: { url: string }) {
   const fullUrl = url.startsWith("http") ? url : `${API_BASE}${url}`;
@@ -82,8 +68,12 @@ export function PartMesh({
   const visualRef = useRef<"ghost" | "active" | "complete">("complete");
 
   useFrame(({ clock }) => {
-    const rs = renderStatesRef.current?.[part.id];
-    if (!groupRef.current || !rs) return;
+    if (!groupRef.current) return;
+    const rs: PartRenderState = renderStatesRef.current?.[part.id] ?? {
+      position: (part.position as [number, number, number]) ?? [0, 0, 0],
+      opacity: 1,
+      visualState: "complete",
+    };
 
     // Position + rotation
     groupRef.current.position.set(rs.position[0], rs.position[1], rs.position[2]);
@@ -166,16 +156,22 @@ export function PartMesh({
       }}
     >
       {hasGlb ? (
-        <Suspense
-          fallback={
-            <mesh castShadow receiveShadow>
-              <PlaceholderGeometry geometry={part.geometry ?? "box"} dimensions={dims} />
-              <meshStandardMaterial color={part.color ?? "#B0AEA8"} roughness={0.45} metalness={0.25} />
-            </mesh>
-          }
+        <GlbErrorBoundary
+          geometry={part.geometry ?? "box"}
+          dimensions={dims}
+          meshUrl={part.meshFile!}
         >
-          <GlbMesh url={part.meshFile!} />
-        </Suspense>
+          <Suspense
+            fallback={
+              <mesh castShadow receiveShadow>
+                <PlaceholderGeometry geometry={part.geometry ?? "box"} dimensions={dims} />
+                <meshStandardMaterial color={part.color ?? "#B0AEA8"} roughness={0.45} metalness={0.25} />
+              </mesh>
+            }
+          >
+            <GlbMesh url={part.meshFile!} />
+          </Suspense>
+        </GlbErrorBoundary>
       ) : (
         <mesh castShadow receiveShadow>
           <PlaceholderGeometry geometry={part.geometry ?? "box"} dimensions={dims} />

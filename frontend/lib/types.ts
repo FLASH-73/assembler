@@ -132,8 +132,8 @@ export interface SystemInfo {
 export interface PlanSuggestion {
   stepId: string;
   field: string;
-  oldValue: string;
-  newValue: string;
+  oldValue: string | Record<string, unknown>;
+  newValue: string | Record<string, unknown>;
   reason: string;
 }
 
