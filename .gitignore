@@ -59,6 +59,10 @@ configs/calibration/*/
 # Generated mesh files
 data/meshes/
 
+# Recorded demos and analytics
+data/demos/
+data/analytics/
+
 # LeRobot submodule outputs
 lerobot/outputs/
 CAD_examples/*.step
