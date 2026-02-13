@@ -23,6 +23,8 @@ from nextis.assembly.models import AssemblyGraph, AssemblyStep
 from nextis.errors import AssemblyError
 from nextis.execution.policy_router import PolicyRouter
 from nextis.execution.types import StepResult
+from nextis.perception.types import ExecutionData
+from nextis.perception.verifier import StepVerifier
 
 logger = logging.getLogger(__name__)
 
@@ -68,6 +70,7 @@ class Sequencer:
         on_state_change: Callable[[ExecutionState], None],
         router: PolicyRouter | None = None,
         analytics: AnalyticsStore | None = None,
+        verifier: StepVerifier | None = None,
     ) -> None:
         if not graph.step_order:
             raise AssemblyError(f"Assembly '{graph.id}' has no steps to execute")
@@ -76,6 +79,7 @@ class Sequencer:
         self._on_state_change = on_state_change
         self._router = router or PolicyRouter()
         self._analytics = analytics
+        self._verifier = verifier
 
         self._state = SequencerState.IDLE
         self._step_index: int = 0
@@ -288,6 +292,28 @@ class Sequencer:
                         break
 
                     result = await self._dispatch_step(step)
+
+                    # Verify step outcome if dispatch reported success
+                    if result.success and self._verifier:
+                        # Convert per-joint torque history to magnitude series
+                        magnitudes = [
+                            max(abs(t) for t in tick) if tick else 0.0
+                            for tick in result.force_history
+                        ]
+                        exec_data = ExecutionData(
+                            final_position=result.actual_position,
+                            force_history=magnitudes,
+                            peak_force=result.actual_force,
+                            duration_ms=result.duration_ms,
+                        )
+                        vr = await self._verifier.verify(step, exec_data)
+                        if not vr.passed:
+                            result = StepResult(
+                                success=False,
+                                duration_ms=result.duration_ms,
+                                handler_used=result.handler_used,
+                                error_message=f"Verification failed: {vr.detail}",
+                            )
 
                     # Record analytics for every dispatch attempt
                     if self._analytics is not None:
