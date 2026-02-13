@@ -3,6 +3,7 @@ import type {
   AssemblySummary,
   Demo,
   ExecutionState,
+  PlanAnalysis,
   StepMetrics,
   SystemInfo,
   TeleopState,
@@ -141,4 +142,10 @@ export const api = {
 
   // --- Delete ---
   deleteAssembly: (id: string) => del(`/assemblies/${id}`),
+
+  // --- AI Analysis ---
+  analyzeAssembly: (id: string, apply?: boolean) =>
+    post<PlanAnalysis>(
+      `/assemblies/${id}/analyze${apply ? "?apply=true" : ""}`,
+    ),
 };

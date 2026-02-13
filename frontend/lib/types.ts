@@ -128,3 +128,19 @@ export interface SystemInfo {
   assemblies: number;
   lerobotAvailable: boolean;
 }
+
+export interface PlanSuggestion {
+  stepId: string;
+  field: string;
+  oldValue: string;
+  newValue: string;
+  reason: string;
+}
+
+export interface PlanAnalysis {
+  suggestions: PlanSuggestion[];
+  warnings: string[];
+  difficultyScore: number;
+  estimatedTeachingMinutes: number;
+  summary: string;
+}

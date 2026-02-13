@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useAssembly } from "@/context/AssemblyContext";
 import { useExecution } from "@/context/ExecutionContext";
+import { AnalysisPanel } from "./AnalysisPanel";
 import { StepCard } from "./StepCard";
 
 export function StepList() {
@@ -31,6 +32,7 @@ export function StepList() {
       <h2 className="mb-3 text-[14px] font-semibold text-text-primary">
         Assembly Steps
       </h2>
+      <AnalysisPanel />
       <div className="flex flex-col gap-1">
         {assembly.stepOrder.map((stepId, index) => {
           const step = assembly.steps[stepId];

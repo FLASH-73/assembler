@@ -2,6 +2,7 @@ import type {
   Assembly,
   AssemblySummary,
   ExecutionState,
+  PlanAnalysis,
   StepMetrics,
   StepRuntimeState,
 } from "./types";
@@ -248,4 +249,36 @@ export const MOCK_STEP_METRICS: Record<string, StepMetrics> = {
     demoCount: 6,
     recentRuns: makeRecentRuns(10, 0.88, 4100),
   },
+};
+
+// ---------------------------------------------------------------------------
+// Mock AI plan analysis
+// ---------------------------------------------------------------------------
+
+export const MOCK_PLAN_ANALYSIS: PlanAnalysis = {
+  suggestions: [
+    {
+      stepId: "step_004",
+      field: "handler",
+      oldValue: "policy",
+      newValue: "primitive",
+      reason:
+        "Bearing insertion with 0.015m radius has sufficient clearance for a linear_insert primitive with compliance control.",
+    },
+    {
+      stepId: "step_005",
+      field: "maxRetries",
+      oldValue: "2",
+      newValue: "4",
+      reason:
+        "Press fit operations have higher variance; increasing retries reduces human escalation frequency.",
+    },
+  ],
+  warnings: [
+    "Step step_004 has no policy trained yet — consider recording demos before execution.",
+  ],
+  difficultyScore: 4,
+  estimatedTeachingMinutes: 15,
+  summary:
+    "This is a straightforward 5-step bearing assembly. The heuristic plan is mostly correct. Consider switching the bearing insertion from policy to linear_insert primitive since the tolerance is not tight.",
 };
