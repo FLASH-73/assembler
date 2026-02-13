@@ -7,6 +7,7 @@ blends startup, sends commands to the follower, and applies safety checks.
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import threading
 import time
@@ -97,6 +98,10 @@ class TeleopLoop:
         # Shared action state (for external consumers like recording)
         self._latest_action: dict[str, float] = {}
         self._action_lock = threading.Lock()
+
+        # Seed with robot observation so recording never sees an empty action dict
+        with contextlib.suppress(Exception):
+            self._latest_action = robot.get_observation()
 
     def start(self) -> None:
         """Start the teleoperation loop in a background thread."""
