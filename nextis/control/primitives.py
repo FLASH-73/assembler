@@ -62,10 +62,11 @@ async def move_to(
     Returns:
         PrimitiveResult with success and actual position.
     """
+    speed = kwargs.pop("_speed_factor", 1.0)
     target_pose = target_pose or []
     logger.info("move_to: target=%s velocity=%.2f", target_pose, velocity)
     start = time.monotonic()
-    await asyncio.sleep(min(1.0, timeout))
+    await asyncio.sleep(min(1.0, timeout) * speed)
     duration = (time.monotonic() - start) * 1000
     logger.info("move_to: complete in %.0fms", duration)
     return PrimitiveResult(success=True, actual_position=target_pose, duration_ms=duration)
@@ -91,6 +92,7 @@ async def pick(
     Returns:
         PrimitiveResult with success and measured grip force.
     """
+    speed = kwargs.pop("_speed_factor", 1.0)
     logger.info(
         "pick: grasp_pose=%s approach=%.3fm threshold=%.2fNm",
         grasp_pose,
@@ -98,7 +100,7 @@ async def pick(
         force_threshold,
     )
     start = time.monotonic()
-    await asyncio.sleep(min(1.5, timeout))
+    await asyncio.sleep(min(1.5, timeout) * speed)
     duration = (time.monotonic() - start) * 1000
     logger.info("pick: complete in %.0fms", duration)
     return PrimitiveResult(
@@ -129,10 +131,11 @@ async def place(
     Returns:
         PrimitiveResult with success and actual position.
     """
+    speed = kwargs.pop("_speed_factor", 1.0)
     target_pose = target_pose or []
     logger.info("place: target=%s approach=%.3fm", target_pose, approach_height)
     start = time.monotonic()
-    await asyncio.sleep(min(1.5, timeout))
+    await asyncio.sleep(min(1.5, timeout) * speed)
     duration = (time.monotonic() - start) * 1000
     logger.info("place: complete in %.0fms", duration)
     return PrimitiveResult(success=True, actual_position=target_pose, duration_ms=duration)
@@ -158,6 +161,7 @@ async def guarded_move(
     Returns:
         PrimitiveResult with measured contact force.
     """
+    speed = kwargs.pop("_speed_factor", 1.0)
     direction = direction or [0, 0, -1]
     logger.info(
         "guarded_move: dir=%s threshold=%.1fNm max=%.3fm",
@@ -166,7 +170,7 @@ async def guarded_move(
         max_distance,
     )
     start = time.monotonic()
-    await asyncio.sleep(min(1.0, timeout))
+    await asyncio.sleep(min(1.0, timeout) * speed)
     duration = (time.monotonic() - start) * 1000
     logger.info("guarded_move: contact at %.1fNm in %.0fms", force_threshold, duration)
     return PrimitiveResult(
@@ -196,10 +200,11 @@ async def linear_insert(
     Returns:
         PrimitiveResult with final position and force.
     """
+    speed = kwargs.pop("_speed_factor", 1.0)
     target_pose = target_pose or []
     logger.info("linear_insert: target=%s force_limit=%.1fNm", target_pose, force_limit)
     start = time.monotonic()
-    await asyncio.sleep(min(2.0, timeout))
+    await asyncio.sleep(min(2.0, timeout) * speed)
     duration = (time.monotonic() - start) * 1000
     logger.info("linear_insert: complete in %.0fms", duration)
     return PrimitiveResult(
@@ -230,9 +235,10 @@ async def screw(
     Returns:
         PrimitiveResult with final torque reading.
     """
+    speed = kwargs.pop("_speed_factor", 1.0)
     logger.info("screw: rotations=%.1f torque_limit=%.1fNm", rotations, torque_limit)
     start = time.monotonic()
-    await asyncio.sleep(min(2.0, timeout))
+    await asyncio.sleep(min(2.0, timeout) * speed)
     duration = (time.monotonic() - start) * 1000
     logger.info("screw: complete in %.0fms", duration)
     return PrimitiveResult(success=True, actual_force=torque_limit * 0.8, duration_ms=duration)
@@ -258,6 +264,7 @@ async def press_fit(
     Returns:
         PrimitiveResult with achieved pressing force.
     """
+    speed = kwargs.pop("_speed_factor", 1.0)
     direction = direction or [0, 0, -1]
     logger.info(
         "press_fit: dir=%s target=%.1fNm max=%.3fm",
@@ -266,7 +273,7 @@ async def press_fit(
         max_distance,
     )
     start = time.monotonic()
-    await asyncio.sleep(min(1.5, timeout))
+    await asyncio.sleep(min(1.5, timeout) * speed)
     duration = (time.monotonic() - start) * 1000
     logger.info("press_fit: complete at %.1fNm in %.0fms", force_target, duration)
     return PrimitiveResult(success=True, actual_force=force_target, duration_ms=duration)
@@ -286,8 +293,9 @@ class PrimitiveLibrary:
     parameters to the appropriate primitive.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, speed_factor: float = 1.0) -> None:
         self._primitives: dict[str, PrimitiveFn] = {}
+        self._speed = speed_factor
         self._register_defaults()
 
     def _register_defaults(self) -> None:
@@ -333,6 +341,7 @@ class PrimitiveLibrary:
         if fn is None:
             raise AssemblyError(f"Unknown primitive: {name}")
         params = params or {}
+        params["_speed_factor"] = self._speed
         logger.info("Dispatching primitive '%s' with params: %s", name, params)
         return await fn(robot=robot, **params)
 

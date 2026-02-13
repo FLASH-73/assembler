@@ -44,3 +44,15 @@ app.mount("/meshes", StaticFiles(directory=str(_MESHES_DIR)), name="meshes")
 async def health() -> dict[str, str]:
     """Health check endpoint."""
     return {"status": "ok"}
+
+
+@app.get("/system/info")
+async def system_info() -> dict:
+    """System information for the frontend demo banner."""
+    configs_dir = Path(__file__).resolve().parents[2] / "configs" / "assemblies"
+    return {
+        "version": "0.1.0",
+        "mode": "mock",
+        "assemblies": len(list(configs_dir.glob("*.json"))),
+        "lerobotAvailable": False,
+    }

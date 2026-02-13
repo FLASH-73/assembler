@@ -111,6 +111,20 @@ async def update_step(
     return {"status": "updated"}
 
 
+@router.delete("/{assembly_id}")
+async def delete_assembly(assembly_id: str) -> dict[str, str]:
+    """Delete an assembly and its associated mesh files."""
+    path = _find_assembly_path(assembly_id)
+    path.unlink()
+
+    mesh_dir = MESHES_DIR / assembly_id
+    if mesh_dir.is_dir():
+        shutil.rmtree(mesh_dir)
+
+    logger.info("Deleted assembly %s", assembly_id)
+    return {"status": "deleted", "id": assembly_id}
+
+
 @router.post("/upload", status_code=201)
 async def upload_step_file(file: UploadFile = File(...)) -> dict[str, Any]:  # noqa: B008
     """Parse a STEP file and create an assembly with GLB meshes.
@@ -152,14 +166,7 @@ async def upload_step_file(file: UploadFile = File(...)) -> dict[str, Any]:  # n
         planner = SequencePlanner()
         graph = planner.plan(parse_result)
 
-        # Check for duplicates
         json_path = CONFIGS_DIR / f"{graph.id}.json"
-        if json_path.exists():
-            raise HTTPException(
-                status_code=409,
-                detail=f"Assembly '{graph.id}' already exists",
-            )
-
         graph.to_json_file(json_path)
         logger.info("Created assembly '%s' from uploaded STEP file", graph.id)
         return graph.model_dump(by_alias=True)

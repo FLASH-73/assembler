@@ -158,12 +158,29 @@ class SequencePlanner:
         dims = part.dimensions or [0.05, 0.05, 0.05]
         vol = _part_volume(part)
 
-        # Cylinder with contacts → linear_insert
+        # Cylinder with contacts → check tolerance
         if geo == "cylinder" and contacts:
+            # Small radius cylinders always need policy (pins, shafts)
+            if len(dims) >= 2 and dims[0] < 0.008:
+                return ("policy", None, SuccessCriteria(type="classifier"))
+            # Larger cylinders with contacts → linear_insert primitive
             return (
                 "primitive",
                 "linear_insert",
                 SuccessCriteria(type="force_signature", pattern="snap_fit"),
+            )
+
+        # Parts with many contacts → likely needs precise alignment → policy
+        if len(contacts) >= 3:
+            return ("policy", None, SuccessCriteria(type="classifier"))
+
+        # "gear" or "bearing" in part name → likely needs teaching
+        name_lower = part.id.lower()
+        if any(kw in name_lower for kw in ("gear", "bearing", "ring", "snap", "clip")) and contacts:
+            return (
+                "policy",
+                None,
+                SuccessCriteria(type="force_signature", pattern="meshing"),
             )
 
         # Very small part → press_fit (likely fastener)

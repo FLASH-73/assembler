@@ -72,6 +72,7 @@ class StartRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     assembly_id: str = Field(alias="assemblyId")
+    speed: float = Field(default=1.0, ge=0.1, le=20.0)
 
 
 # ------------------------------------------------------------------
@@ -116,7 +117,8 @@ async def start_execution(request: StartRequest) -> dict[str, str]:
     logger.info("Loaded assembly '%s' with %d steps", graph.name, len(graph.step_order))
 
     # Build router with stub primitives (no real robot yet)
-    primitives = PrimitiveLibrary()
+    speed_factor = 1.0 / request.speed
+    primitives = PrimitiveLibrary(speed_factor=speed_factor)
     policy_router = PolicyRouter(primitive_library=primitives, robot=None)
     _analytics_store = AnalyticsStore(root=ANALYTICS_DIR)
 

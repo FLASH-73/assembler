@@ -137,3 +137,15 @@ async def list_demos(assembly_id: str, step_id: str) -> list[DemoInfo]:
             logger.warning("Failed to read demo %s: %s", hdf5_path, e)
 
     return demos
+
+
+@router.post("/demos/{assembly_id}/{step_id}/{demo_id}/delete")
+async def delete_demo(assembly_id: str, step_id: str, demo_id: str) -> dict:
+    """Delete a specific recorded demo."""
+    demo_dir = DEFAULT_DATA_DIR / assembly_id / step_id
+    matching = list(demo_dir.glob(f"{demo_id}*.hdf5"))
+    if not matching:
+        raise HTTPException(404, f"Demo '{demo_id}' not found")
+    for f in matching:
+        f.unlink()
+    return {"status": "deleted", "demoId": demo_id}
