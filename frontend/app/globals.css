@@ -1,40 +1,45 @@
 @import "tailwindcss";
 
 @theme inline {
-  /* Backgrounds */
-  --color-bg-primary: #FAFAF8;
-  --color-bg-secondary: #F2F1EE;
-  --color-bg-tertiary: #E8E7E4;
-  --color-bg-viewer: #F5F5F3;
+  /* Backgrounds — cool zinc palette */
+  --color-bg-primary: #FAFAFA;
+  --color-bg-secondary: #F4F4F5;
+  --color-bg-tertiary: #E4E4E7;
+  --color-bg-viewer: #F8F8FA;
+  --color-bg-elevated: #FFFFFF;
 
-  /* Text */
-  --color-text-primary: #1A1A18;
-  --color-text-secondary: #6B6B66;
-  --color-text-tertiary: #9C9C97;
+  /* Text — sharp contrast */
+  --color-text-primary: #09090B;
+  --color-text-secondary: #52525B;
+  --color-text-tertiary: #A1A1AA;
 
-  /* Brand */
-  --color-accent: #E05A1A;
-  --color-accent-hover: #C94D15;
-  --color-accent-light: #FDF0EB;
+  /* Brand — precision dark */
+  --color-accent: #18181B;
+  --color-accent-hover: #27272A;
+  --color-accent-light: #F4F4F5;
+
+  /* Signal — interactive/active highlight (blue) */
+  --color-signal: #2563EB;
+  --color-signal-light: #EFF6FF;
 
   /* Status */
-  --color-status-success: #2A9D5C;
-  --color-status-running: #2574D4;
-  --color-status-warning: #D4930A;
-  --color-status-error: #D43825;
-  --color-status-human: #7C5CBA;
-  --color-status-pending: #C8C7C3;
+  --color-status-success: #16A34A;
+  --color-status-running: #2563EB;
+  --color-status-warning: #CA8A04;
+  --color-status-error: #DC2626;
+  --color-status-human: #7C3AED;
+  --color-status-pending: #D4D4D8;
 
   /* Status backgrounds */
-  --color-status-success-bg: #EDFAF2;
-  --color-status-running-bg: #EBF2FC;
-  --color-status-warning-bg: #FDF6E8;
-  --color-status-error-bg: #FCEDEB;
-  --color-status-human-bg: #F3EFFB;
+  --color-status-success-bg: #F0FDF4;
+  --color-status-running-bg: #EFF6FF;
+  --color-status-warning-bg: #FEFCE8;
+  --color-status-error-bg: #FEF2F2;
+  --color-status-human-bg: #F5F3FF;
 
   /* Fonts */
-  --font-sans: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: var(--font-geist-mono), 'SF Mono', 'Fira Code', monospace;
+  --font-sans: var(--font-dm-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: var(--font-jetbrains-mono), 'SF Mono', 'Fira Code', monospace;
 }
 
 body {

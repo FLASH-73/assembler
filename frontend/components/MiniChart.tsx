@@ -19,14 +19,14 @@ export function MiniChart({ runs }: MiniChartProps) {
         <AreaChart data={data} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#E05A1A" stopOpacity={0.2} />
-              <stop offset="100%" stopColor="#E05A1A" stopOpacity={0} />
+              <stop offset="0%" stopColor="#2563EB" stopOpacity={0.2} />
+              <stop offset="100%" stopColor="#2563EB" stopOpacity={0} />
             </linearGradient>
           </defs>
           <Area
             type="monotone"
             dataKey="value"
-            stroke="#E05A1A"
+            stroke="#2563EB"
             strokeWidth={1.5}
             fill="url(#chartGradient)"
             isAnimationActive={false}

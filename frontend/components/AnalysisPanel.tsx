@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import type { PlanAnalysis, PlanSuggestion } from "@/lib/types";
+import type { AssemblyStep, PlanAnalysis, PlanSuggestion } from "@/lib/types";
 import { useAssembly } from "@/context/AssemblyContext";
 import { api } from "@/lib/api";
 import { MOCK_PLAN_ANALYSIS } from "@/lib/mock-data";
@@ -86,7 +86,7 @@ export function AnalysisPanel() {
       try {
         await api.updateStep(assembly.id, suggestion.stepId, {
           [suggestion.field]: suggestion.newValue,
-        } as Partial<PlanSuggestion>);
+        } as Partial<AssemblyStep>);
         setDismissedIds((prev) => new Set(prev).add(suggestion.stepId + suggestion.field));
       } catch {
         // Keep suggestion visible on error

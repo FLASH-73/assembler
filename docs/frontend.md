@@ -11,17 +11,17 @@ The frontend header says **AURA** in the wordmark. The page title is "AURA — A
 
 ## Design Philosophy
 
-**Confident, bright, precise.** This is a professional tool that looks like it belongs in 2026, not a hackathon dashboard and not a dark hacker terminal. Think Linear meets Vercel meets precision engineering. The software should feel as solid as the machines it controls.
+**Precise, clinical, authoritative.** This is a precision engineering instrument — think Jony Ive's Apple meets Dieter Rams's Braun meets a machinist's quality control station. The software should feel as precise as the machines it controls.
 
 ### Core Principles
 
-1. **Bright and warm** — white backgrounds, natural light feel. The operator is building physical things; the interface should feel physical too, like good paper and clean workbenches.
+1. **Cool and precise** — zinc-toned white backgrounds, sharp contrast. The palette is clinical, not warm. Cool neutrals convey precision; warmth conveys comfort. We want precision.
 
-2. **Color is information** — the background is neutral. Color only appears when it means something: step status, alerts, the brand accent. If something is colored, it's telling you something. If it's not telling you something, it's grey or black.
+2. **Color is information** — the background is neutral. The brand accent is near-black (zinc-900) — confidence doesn't need color. The ONE color that pops is signal blue (#2563EB), used only for "system active" states (running execution, selected items, connected indicator). Blue means "something is happening." Nothing else screams.
 
-3. **Typography is hierarchy** — big numbers for metrics (cycle time, success rate). Medium weight for labels. Light weight for secondary info. The data should be scannable from across a desk.
+3. **Typography is hierarchy** — big monospace numbers for metrics (cycle time at 36px, stats at 72px). Engraved-panel-style labels (10px, 600 weight, uppercase, wide tracking). The data should be scannable from across a desk.
 
-4. **Whitespace is confidence** — don't cram. A few well-placed elements with room to breathe looks more professional than a dense grid of cards. The 3D viewer gets generous space. Metrics have padding. Let the interface feel calm even when the robot is running.
+4. **Whitespace is confidence** — don't cram. A few well-placed elements with room to breathe. The 3D viewer goes edge-to-edge. Metrics have generous spacing. The interface stays calm even when the robot is running.
 
 5. **No decoration** — no gradients, no glassmorphism, no blob backgrounds, no floating particles, no animated borders. Every pixel earns its place by conveying information or supporting readability.
 
@@ -30,80 +30,88 @@ The frontend header says **AURA** in the wordmark. The page title is "AURA — A
 ## Color System
 
 ```css
-:root {
-  /* Backgrounds */
-  --bg-primary: #FAFAF8;        /* Warm white — main background */
-  --bg-secondary: #F2F1EE;      /* Slightly darker — cards, panels */
-  --bg-tertiary: #E8E7E4;       /* Borders, dividers, subtle contrast */
-  --bg-viewer: #F5F5F3;         /* 3D viewer background — very subtle warm */
+@theme inline {
+  /* Backgrounds — cool zinc palette */
+  --color-bg-primary: #FAFAFA;       /* Pure neutral white */
+  --color-bg-secondary: #F4F4F5;     /* Zinc-50 — cards, panels */
+  --color-bg-tertiary: #E4E4E7;      /* Zinc-200 — borders, dividers */
+  --color-bg-viewer: #F8F8FA;        /* Slight cool tint for 3D viewer */
+  --color-bg-elevated: #FFFFFF;      /* True white for elevated panels */
 
-  /* Text */
-  --text-primary: #1A1A18;      /* Near-black — headings, primary content */
-  --text-secondary: #6B6B66;    /* Medium grey — labels, descriptions */
-  --text-tertiary: #9C9C97;     /* Light grey — timestamps, metadata */
+  /* Text — sharp contrast */
+  --color-text-primary: #09090B;     /* Zinc-950 — headings, primary */
+  --color-text-secondary: #52525B;   /* Zinc-600 — labels, descriptions */
+  --color-text-tertiary: #A1A1AA;    /* Zinc-400 — metadata, timestamps */
 
-  /* Brand */
-  --accent: #E05A1A;            /* Warm deep orange — AURA brand color */
-  --accent-hover: #C94D15;      /* Darker on hover */
-  --accent-light: #FDF0EB;      /* Very light orange — subtle backgrounds */
+  /* Brand — precision dark (the brand IS precision) */
+  --color-accent: #18181B;           /* Zinc-900 — primary buttons, wordmark */
+  --color-accent-hover: #27272A;     /* Zinc-800 */
+  --color-accent-light: #F4F4F5;     /* Zinc-50 — subtle selected states */
 
-  /* Status (these are the ONLY other colors in the UI) */
-  --status-success: #2A9D5C;    /* Green — step complete, connected */
-  --status-running: #2574D4;    /* Blue — autonomous execution */
-  --status-warning: #D4930A;    /* Amber — needs attention, retrying */
-  --status-error: #D43825;      /* Red — failed, disconnected, e-stop */
-  --status-human: #7C5CBA;      /* Purple — human in control */
-  --status-pending: #C8C7C3;    /* Light grey — not yet started */
+  /* Signal — one electric blue for active/CTA states */
+  --color-signal: #2563EB;           /* Blue-600 — "system active" */
+  --color-signal-light: #EFF6FF;     /* Blue-50 */
 
-  /* Status backgrounds (for badges and step cards) */
-  --status-success-bg: #EDFAF2;
-  --status-running-bg: #EBF2FC;
-  --status-warning-bg: #FDF6E8;
-  --status-error-bg: #FCEDEB;
-  --status-human-bg: #F3EFFB;
+  /* Status */
+  --color-status-success: #16A34A;   /* Green-600 */
+  --color-status-running: #2563EB;   /* Blue-600 (matches signal) */
+  --color-status-warning: #CA8A04;   /* Yellow-600 */
+  --color-status-error: #DC2626;     /* Red-600 */
+  --color-status-human: #7C3AED;     /* Violet-600 */
+  --color-status-pending: #D4D4D8;   /* Zinc-300 */
+
+  /* Status backgrounds (used by AnalysisPanel + UploadDialog) */
+  --color-status-success-bg: #F0FDF4;
+  --color-status-running-bg: #EFF6FF;
+  --color-status-warning-bg: #FEFCE8;
+  --color-status-error-bg: #FEF2F2;
+  --color-status-human-bg: #F5F3FF;
 }
 ```
 
 ### Usage Rules
 
-- The brand accent (`--accent`) appears in: the AURA wordmark, primary action buttons (Start Assembly, Save), active tab indicators, and selected items. Nowhere else.
-- Status colors appear ONLY on step status badges, connection indicators, and metric thresholds. Never as background fills for entire sections.
-- Text is always `--text-primary` or `--text-secondary`. Never use status colors for body text.
-- Borders use `--bg-tertiary`. One pixel, solid. No colored borders except on focused inputs (use `--accent`).
+- The brand accent (`--accent`, zinc-900) creates dark primary buttons (Start, Watch Demo). The wordmark "AURA" uses `text-primary` (near-black), not accent.
+- Signal blue (`--signal`, #2563EB) is the ONLY pop of color: selected step left-border, active timeline fill, focus rings, interactive highlights. Blue means "something is happening."
+- Status colors appear ONLY on status dots, connection indicators, and step indicators. Never as background fills for entire sections.
+- Text is always `text-primary` or `text-secondary`. Never use status colors for body text.
+- Borders use `bg-tertiary`. One pixel, solid. No colored borders except on focused inputs (use `--signal`).
 
 ---
 
 ## Typography
 
 ```css
-/* Primary: Geist Sans (Vercel's typeface — clean, modern, excellent readability) */
-/* Fallback: system fonts */
---font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+/* Primary: DM Sans — geometric, clean, distinctive 'a' and 'g' */
+--font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
-/* Monospace: for data, motor values, code, timestamps */
---font-mono: 'Geist Mono', 'SF Mono', 'Fira Code', monospace;
+/* Monospace: JetBrains Mono — industrial character, excellent for data */
+--font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
 ```
 
 ### Type Scale
 
-| Element | Size | Weight | Font | Color |
-|---------|------|--------|------|-------|
-| Page title (AURA wordmark) | 18px | 600 | Sans | `--text-primary` |
-| Section heading | 14px | 600 | Sans | `--text-primary` |
-| Body / labels | 13px | 400 | Sans | `--text-secondary` |
-| Metric value (large) | 32px | 600 | Mono | `--text-primary` |
-| Metric value (medium) | 20px | 500 | Mono | `--text-primary` |
-| Metric label | 11px | 500 | Sans uppercase | `--text-tertiary` |
-| Data readout | 12px | 400 | Mono | `--text-secondary` |
-| Button text | 13px | 500 | Sans | white or `--text-primary` |
-| Badge / status | 11px | 600 | Sans | status color |
+| Element | Size | Weight | Font | Color | Notes |
+|---------|------|--------|------|-------|-------|
+| AURA wordmark | 16px | 700 | Sans | `text-primary` | letter-spacing 0.2em, all caps |
+| Cycle time (TopBar) | 36px | 500 | Mono | `text-primary` | dominant number on screen |
+| Landing hero title | 64px | 800 | Sans | `text-primary` | letter-spacing 0.08em |
+| Landing stats | 72px | 600 | Mono | `text-primary` | billboard numbers |
+| Section heading | 14px | 600 | Sans | `text-primary` | |
+| Step names | 14px | 500 | Sans | `text-primary` | slightly heavier than before |
+| Body / labels | 13px | 400 | Sans | `text-secondary` | |
+| Metric value (large) | 20px | 500 | Mono | `text-primary` | in StepDetail |
+| Metric value (bottom bar) | 16px | 500 | Mono | `text-primary` | instrument readout |
+| Metric/panel label | 10px | 600 | Sans uppercase | `text-tertiary` | tracking 0.06-0.08em, engraved style |
+| Status badge | 10px | 600 | Sans uppercase | `text-secondary` | dot + label, no pill |
+| Button text | 13px | 500 | Sans | white or `text-primary` | |
 
 ### Rules
 
-- Never use font sizes below 11px
-- Headings are `font-weight: 600`, never bold (700+)
-- Uppercase ONLY for metric labels and status badges
-- Letter-spacing: `0.02em` on uppercase labels, `0` everywhere else
+- Never use font sizes below 9px (bottom bar labels are 9px)
+- AURA wordmark uses 700 weight; other headings use 600
+- Uppercase ONLY for panel labels, metric labels, and status badges
+- Letter-spacing: `0.06em`-`0.08em` on uppercase labels, `0.2em` on wordmark, `0` elsewhere
 - Line height: 1.5 for body text, 1.2 for headings, 1.0 for metrics
 
 ---
@@ -140,11 +148,12 @@ This is the ONE screen. Everything happens here. No modals, no page navigation, 
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Top Bar
+### Top Bar (48px height)
 
-- Left: **AURA** wordmark in accent color. Assembly name as a dropdown selector.
-- Center: Cycle time (large monospace number, counting up during execution).
-- Right: Run controls — Start (▶), Pause (⏸), Stop (■), Intervene (🤚). Only active states are enabled. E-stop button is always visible, always red.
+- Left: **AURA·** wordmark in text-primary (16px/700/0.2em tracking), dot separator in text-tertiary. Assembly selector as borderless dropdown (appearance-none, hover bg-secondary). Connection dot (6px, label on hover only).
+- Center: "CYCLE" micro-label (10px uppercase) above the cycle time (36px mono, dominant number on screen).
+- Right: Run controls — Start (dark primary button), Pause, Stop, Intervene, E-stop (always red).
+- Upload button has moved to the StepList panel header.
 
 ### Left Panel — 3D Assembly Viewer (60% width, always visible)
 
@@ -189,9 +198,9 @@ During execution, the live camera feed floats over the 3D viewer:
 
 2. **Step Detail** (bottom 45%) — Selected step's info: handler configuration, success rate chart (last N runs), average duration, number of demos recorded, trained policy info. Action buttons: "Record Demos", "Train", "Test Step".
 
-### Bottom Bar
+### Bottom Bar (32px height)
 
-Persistent metrics strip: total cycle time, overall success rate, steps completed / total, run number. All in monospace. Updates in real-time during execution.
+Instrument panel readout: 16px monospace values with 9px uppercase labels above. Evenly spaced across the bar. Metrics: cycle time, success %, steps completed / total, run number. Hardware and teleop indicators use 6px status dots.
 
 ### Responsive Behavior
 
@@ -213,7 +222,7 @@ This is the most important component in the entire product. Build it with care.
 ### Scene Setup
 
 ```
-Background:    --bg-viewer (#F5F5F3) — warm, not pure white
+Background:    Radial gradient (#FAFAFA center → #F0F0F2 edges) — studio lighting
 Lighting:      One soft directional light (slightly warm) + ambient
                No harsh shadows. Soft contact shadows on the ground plane only.
 Ground plane:  Subtle grid — 1px lines, --bg-tertiary at 30% opacity
@@ -262,7 +271,7 @@ Shown as thin lines with small arrowheads:
 ### Grasp Points
 
 Shown as small spheres (radius = 3% of part bounding box):
-- Color: `--accent` at 80% opacity
+- Color: `--signal` (#2563EB) at 80% opacity
 - Only visible when a part is selected and the step uses a primitive
 - Connected to the part surface with a thin line
 - Tooltip on hover: grasp index, approach angle
@@ -300,26 +309,29 @@ This is the moment someone understands what AURA does. Make it smooth, make it f
 
 ## Components
 
-### Step Card
+### Step Card (ruled lines, no card backgrounds)
 
 ```
-┌──────────────────────────────────┐
-│  ③  Pick bearing         ● ACTIVE │
-│      primitive · pick     3.2s avg │
-└──────────────────────────────────┘
+  3  Pick bearing            · RUNNING
+     primitive · pick           3.2s
+─────────────────────────────────────
+  4  Insert bearing           · PENDING
+     primitive · linear_insert
 ```
 
-- Left: step number in a circle (filled with status color when complete/active)
-- Center: step name (primary text), handler type + primitive name (secondary text)
-- Right: status badge, average duration
+- Left: 20px monospace step number in a 32px column
+- Center: step name (14px/500, primary text), handler type (12px, secondary)
+- Right: dot+label status badge, duration
+- Steps separated by 1px ruled lines (border-b bg-tertiary), no card background
+- Selected step: 2px left border in signal blue, no background change
 
 States:
-- **Pending** — grey circle, grey text, grey badge
-- **Active** — accent circle (pulsing subtly), primary text, blue "RUNNING" badge
-- **Success** — green filled circle with checkmark, primary text, green "DONE" badge
-- **Failed** — red circle with X, primary text, red "FAILED" badge
-- **Human** — purple circle, primary text, purple "HUMAN" badge
-- **Retrying** — amber circle, primary text, amber "RETRY 2/3" badge
+- **Pending** — number in text-tertiary, "PENDING" dot+label
+- **Running** — number in signal blue with pulse animation, "RUNNING" dot+label
+- **Success** — thin 1px-stroke checkmark SVG in success green, "DONE" dot+label
+- **Failed** — thin 1px-stroke X in error red, "FAILED" dot+label
+- **Human** — number in violet, "HUMAN" dot+label
+- **Retrying** — number in warning amber, "RETRY 2/3" dot+label
 
 ### Metric Card
 
@@ -343,7 +355,7 @@ Danger (E-Stop, Stop): `--status-error` background, white text. Always visible d
 
 ### Status Badge
 
-Pill shape: 11px uppercase text, 600 weight, 2px vertical padding, 8px horizontal, 10px border-radius. Background is the `--status-*-bg` variant, text is the `--status-*` color. No border.
+6px circle (filled with status color) + 10px uppercase label in text-secondary. No pill background, no colored text. Cleaner, more technical — like an LED indicator with an engraved label.
 
 ### 3D Viewer
 
@@ -360,7 +372,7 @@ Floating overlay during execution:
 
 ### Upload Dialog
 
-Modal triggered by "+" button in TopBar:
+Modal triggered by "+ Upload" button in StepList panel header:
 - Drag-and-drop zone for `.step` / `.stp` files
 - File input fallback
 - States: idle → uploading (spinner) → error
@@ -474,7 +486,7 @@ frontend/
 │   ├── TrainingProgress.tsx    # Train button, polling progress, loss sparkline
 │   ├── MetricCard.tsx          # Single metric display (label, value, context)
 │   ├── MiniChart.tsx           # Recharts AreaChart for success/failure history
-│   ├── StatusBadge.tsx         # Step status pill (pending/running/success/failed/human/retrying)
+│   ├── StatusBadge.tsx         # Step status dot + label (pending/running/success/failed/human/retrying)
 │   ├── ActionButton.tsx        # Primary / secondary / danger variants
 │   ├── CameraPiP.tsx           # Picture-in-picture camera overlay (placeholder)
 │   ├── TeachingOverlay.tsx     # Full-screen camera during teleop recording
@@ -583,7 +595,7 @@ Minimal. Intentional. Never decorative.
 
 ## Accessibility
 
-- All interactive elements have focus states (2px `--accent` outline)
+- All interactive elements have focus states (2px `--signal` blue outline)
 - Status is never conveyed by color alone (always has text label or icon)
 - Keyboard navigation for step list (arrow keys) and run controls (spacebar = start/pause)
 - Minimum contrast ratio: 4.5:1 for body text, 3:1 for large text

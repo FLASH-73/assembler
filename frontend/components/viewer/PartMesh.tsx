@@ -16,7 +16,7 @@ import { GraspPoint } from "./GraspPoint";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const GHOST_COLOR = "#D4D4D0";
 const COMPLETE_COLOR = "#C8C8C4";
-const ACCENT_COLOR = "#E05A1A";
+const ACCENT_COLOR = "#2563EB";
 
 // ---------------------------------------------------------------------------
 // Sub-components

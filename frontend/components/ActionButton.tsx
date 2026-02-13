@@ -10,9 +10,9 @@ interface ActionButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const VARIANT_CLASSES: Record<Variant, string> = {
   primary:
-    "bg-accent text-white hover:bg-accent-hover focus-visible:ring-accent",
+    "bg-accent text-white hover:bg-accent-hover focus-visible:ring-signal",
   secondary:
-    "bg-transparent border border-bg-tertiary text-text-primary hover:bg-bg-secondary focus-visible:ring-accent",
+    "bg-transparent border border-bg-tertiary text-text-primary hover:bg-bg-secondary focus-visible:ring-signal",
   danger:
     "bg-status-error text-white hover:bg-status-error/90 focus-visible:ring-status-error",
 };

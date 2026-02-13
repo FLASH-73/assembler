@@ -30,12 +30,14 @@ function HardwareIndicator() {
         : "bg-text-tertiary";
 
   return (
-    <div className="flex items-center gap-2">
-      <div className={`h-2 w-2 rounded-full ${dotColor}`} />
-      <span className="text-[11px] font-medium uppercase tracking-[0.02em] text-text-tertiary">
-        Arms
-      </span>
-      <span className="font-mono text-[13px] font-medium tabular-nums text-text-primary">
+    <div className="flex flex-col items-center">
+      <div className="flex items-center gap-1.5">
+        <div className={`h-1.5 w-1.5 rounded-full ${dotColor}`} />
+        <span className="text-[9px] font-medium uppercase tracking-[0.06em] text-text-tertiary leading-none">
+          Arms
+        </span>
+      </div>
+      <span className="font-mono text-[16px] font-medium tabular-nums leading-tight text-text-primary">
         {hw.connected}/{hw.totalArms}
       </span>
     </div>
@@ -52,12 +54,14 @@ function TeleopIndicator() {
   if (!teleop?.active) return null;
 
   return (
-    <div className="flex items-center gap-2">
-      <div className="h-2 w-2 animate-pulse-subtle rounded-full bg-status-success" />
-      <span className="text-[11px] font-medium uppercase tracking-[0.02em] text-text-tertiary">
-        Teleop
-      </span>
-      <span className="font-mono text-[13px] font-medium tabular-nums text-text-primary">
+    <div className="flex flex-col items-center">
+      <div className="flex items-center gap-1.5">
+        <div className="h-1.5 w-1.5 animate-pulse-subtle rounded-full bg-status-success" />
+        <span className="text-[9px] font-medium uppercase tracking-[0.06em] text-text-tertiary leading-none">
+          Teleop
+        </span>
+      </div>
+      <span className="font-mono text-[16px] font-medium tabular-nums leading-tight text-text-primary">
         {teleop.arms.join(", ")}
       </span>
     </div>
@@ -81,15 +85,15 @@ export function BottomBar() {
   ];
 
   return (
-    <footer className="flex h-10 shrink-0 items-center justify-center gap-8 border-t border-bg-tertiary px-6">
+    <footer className="flex h-8 shrink-0 items-center justify-center gap-8 border-t border-bg-tertiary px-6">
       <HardwareIndicator />
       <TeleopIndicator />
       {items.map((item) => (
-        <div key={item.label} className="flex items-center gap-2">
-          <span className="text-[11px] font-medium uppercase tracking-[0.02em] text-text-tertiary">
+        <div key={item.label} className="flex flex-col items-center">
+          <span className="text-[9px] font-medium uppercase tracking-[0.06em] text-text-tertiary leading-none">
             {item.label}
           </span>
-          <span className="font-mono text-[13px] font-medium tabular-nums text-text-primary">
+          <span className="font-mono text-[16px] font-medium tabular-nums leading-tight text-text-primary">
             {item.value}
           </span>
         </div>

@@ -63,11 +63,11 @@ export function ExecutionProgressHUD() {
     <div
       className="absolute bottom-3 left-3 pointer-events-none select-none"
       style={{
-        fontFamily: "var(--font-geist-mono, monospace)",
+        fontFamily: "var(--font-mono, monospace)",
         fontSize: "10px",
         lineHeight: "15px",
-        color: "#6B6B66",
-        background: "rgba(250, 250, 248, 0.75)",
+        color: "#52525B",
+        background: "rgba(250, 250, 250, 0.75)",
         backdropFilter: "blur(4px)",
         borderRadius: "4px",
         padding: "6px 8px",

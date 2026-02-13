@@ -31,7 +31,7 @@ function IconButton({
       title={title}
       onClick={onClick}
       className={`flex h-7 w-7 items-center justify-center rounded transition-colors hover:bg-bg-secondary ${
-        active ? "bg-bg-secondary text-accent" : "text-text-secondary"
+        active ? "bg-bg-secondary text-signal" : "text-text-secondary"
       }`}
     >
       {children}

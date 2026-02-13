@@ -94,7 +94,7 @@ export function AnimationTimeline({
         {/* Track background */}
         <div className="absolute h-[2px] w-full rounded-full bg-bg-tertiary" />
         {/* Fill */}
-        <div ref={fillRef} className="absolute h-[2px] rounded-full bg-accent" />
+        <div ref={fillRef} className="absolute h-[2px] rounded-full bg-signal" />
 
         {/* Step dots */}
         {Array.from({ length: totalSteps }, (_, i) => {
@@ -106,7 +106,7 @@ export function AnimationTimeline({
                 e.stopPropagation();
                 handleDotClick(i);
               }}
-              className="absolute h-[6px] w-[6px] -translate-x-1/2 rounded-full bg-bg-tertiary hover:bg-accent transition-colors"
+              className="absolute h-[6px] w-[6px] -translate-x-1/2 rounded-full bg-bg-tertiary hover:bg-signal transition-colors"
               style={{ left: `${x}%` }}
             />
           );
@@ -115,7 +115,7 @@ export function AnimationTimeline({
         {/* Draggable handle */}
         <div
           ref={handleRef}
-          className="absolute h-2 w-2 -translate-x-1/2 rounded-full bg-accent shadow-sm"
+          className="absolute h-2 w-2 -translate-x-1/2 rounded-full bg-signal shadow-sm"
         />
       </div>
 

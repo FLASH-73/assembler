@@ -118,7 +118,7 @@ export function UploadDialog({ open, onClose, onSuccess }: UploadDialogProps) {
         <div
           className={`mt-4 flex h-40 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed transition-colors ${
             isDragging
-              ? "border-accent bg-accent-light"
+              ? "border-signal bg-signal-light"
               : "border-bg-tertiary bg-bg-secondary"
           } ${isUploading ? "pointer-events-none opacity-60" : ""}`}
           onDragOver={onDragOver}
@@ -128,7 +128,7 @@ export function UploadDialog({ open, onClose, onSuccess }: UploadDialogProps) {
         >
           {isUploading ? (
             <>
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-bg-tertiary border-t-accent" />
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-bg-tertiary border-t-signal" />
               <span className="mt-2 text-[13px] text-text-secondary">
                 Parsing CAD geometry...
               </span>

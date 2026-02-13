@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Assembly } from "@/lib/types";
 import { useAssembly } from "@/context/AssemblyContext";
 import { useExecution } from "@/context/ExecutionContext";
@@ -16,7 +16,7 @@ function formatTime(ms: number): string {
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
-function ConnectionIndicator() {
+function ConnectionDot() {
   const { isConnected } = useConnectionStatus();
   const { connectionState } = useWebSocket();
 
@@ -33,20 +33,29 @@ function ConnectionIndicator() {
   }
 
   return (
-    <div className="flex items-center gap-1.5">
-      <div className={`h-2 w-2 rounded-full ${dotClass}`} />
-      <span className="text-[11px] text-text-tertiary">{label}</span>
+    <div className="group relative flex items-center">
+      <div className={`h-1.5 w-1.5 rounded-full ${dotClass}`} />
+      <span className="pointer-events-none absolute left-4 hidden whitespace-nowrap text-[10px] text-text-tertiary group-hover:block">
+        {label}
+      </span>
     </div>
   );
 }
 
 export function TopBar() {
-  const { assemblies, assembly, selectAssembly, refreshAssemblies, deleteAssembly } = useAssembly();
+  const { assemblies, assembly, selectAssembly, refreshAssemblies } = useAssembly();
   const { executionState } = useExecution();
   const [uploadOpen, setUploadOpen] = useState(false);
 
   const showTime = executionState.phase !== "idle";
   const timeDisplay = showTime ? formatTime(executionState.elapsedMs) : "--:--";
+
+  // Listen for upload trigger from StepList
+  useEffect(() => {
+    const handler = () => setUploadOpen(true);
+    window.addEventListener("open-upload", handler);
+    return () => window.removeEventListener("open-upload", handler);
+  }, []);
 
   const handleUploadSuccess = useCallback(
     (newAssembly: Assembly) => {
@@ -57,28 +66,21 @@ export function TopBar() {
     [refreshAssemblies, selectAssembly],
   );
 
-  const handleDelete = useCallback(() => {
-    if (!assembly) return;
-    const confirmed = window.confirm(
-      `Delete "${assembly.name}"?\n\nThis removes the assembly config and all mesh files.`,
-    );
-    if (confirmed) {
-      void deleteAssembly(assembly.id);
-    }
-  }, [assembly, deleteAssembly]);
-
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between border-b border-bg-tertiary px-6">
-      {/* Left: wordmark + assembly selector + upload + connection status */}
-      <div className="flex items-center gap-4">
-        <span className="text-[18px] font-semibold tracking-[0.05em] text-accent">
-          AURA
-        </span>
-        <div className="flex items-center gap-1.5">
+    <>
+      <header className="flex h-12 shrink-0 items-center justify-between border-b border-bg-tertiary px-6">
+        {/* Left: wordmark + assembly selector + connection */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-0.5">
+            <span className="text-[16px] font-bold tracking-[0.2em] text-text-primary">
+              AURA
+            </span>
+            <span className="text-[16px] text-text-tertiary">&middot;</span>
+          </div>
           <select
             value={assembly?.id ?? ""}
             onChange={(e) => selectAssembly(e.target.value)}
-            className="rounded-md border border-bg-tertiary bg-bg-secondary px-3 py-1.5 text-[13px] text-text-primary outline-none focus:ring-2 focus:ring-accent"
+            className="appearance-none rounded bg-transparent px-2 py-1 text-[13px] text-text-primary outline-none transition-colors hover:bg-bg-secondary"
           >
             {assemblies.map((a) => (
               <option key={a.id} value={a.id}>
@@ -86,39 +88,28 @@ export function TopBar() {
               </option>
             ))}
           </select>
-          <button
-            onClick={() => setUploadOpen(true)}
-            className="rounded-md border border-bg-tertiary bg-bg-secondary px-2 py-1.5 text-[13px] text-text-secondary hover:text-text-primary"
-          >
-            +
-          </button>
-          <button
-            onClick={handleDelete}
-            disabled={!assembly}
-            className="rounded-md border border-bg-tertiary bg-bg-secondary px-2 py-1.5 text-[13px] text-text-secondary hover:text-red-500 disabled:opacity-30 disabled:pointer-events-none"
-            title="Delete assembly"
-          >
-            &times;
-          </button>
+          <ConnectionDot />
         </div>
-        <ConnectionIndicator />
-      </div>
+
+        {/* Center: cycle time */}
+        <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-text-tertiary">
+            Cycle
+          </span>
+          <span className="font-mono text-[36px] font-medium leading-none tabular-nums text-text-primary">
+            {timeDisplay}
+          </span>
+        </div>
+
+        {/* Right: run controls */}
+        <RunControls />
+      </header>
 
       <UploadDialog
         open={uploadOpen}
         onClose={() => setUploadOpen(false)}
         onSuccess={handleUploadSuccess}
       />
-
-      {/* Center: cycle time */}
-      <div className="absolute left-1/2 -translate-x-1/2">
-        <span className="font-mono text-[28px] font-semibold tabular-nums text-text-primary">
-          {timeDisplay}
-        </span>
-      </div>
-
-      {/* Right: run controls */}
-      <RunControls />
-    </header>
+    </>
   );
 }

@@ -174,7 +174,7 @@ export function ArchitectureGrid() {
             href={mod.lines > 0 ? `${GITHUB_BASE}/${mod.path}` : undefined}
             target="_blank"
             rel="noopener noreferrer"
-            className="group rounded-md border border-bg-tertiary bg-bg-secondary px-3 py-2.5 transition-colors hover:border-accent/30"
+            className="group rounded-md px-3 py-2.5 transition-colors hover:bg-bg-secondary"
           >
             <div className="flex items-start gap-2">
               <div

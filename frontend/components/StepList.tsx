@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useAssembly } from "@/context/AssemblyContext";
 import { useExecution } from "@/context/ExecutionContext";
 import { AnalysisPanel } from "./AnalysisPanel";
@@ -19,21 +19,50 @@ export function StepList() {
     }
   }, [executionState.currentStepId, executionState.phase]);
 
+  const openUpload = useCallback(() => {
+    window.dispatchEvent(new Event("open-upload"));
+  }, []);
+
   if (!assembly || assembly.stepOrder.length === 0) {
     return (
-      <div className="flex h-full items-center justify-center p-6">
+      <div className="flex h-full flex-col items-center justify-center p-6">
         <p className="text-[13px] text-text-tertiary">No assembly loaded</p>
+        <button
+          onClick={openUpload}
+          className="mt-3 text-[12px] font-medium text-signal hover:underline"
+        >
+          Upload STEP file
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col p-4" ref={listRef}>
-      <h2 className="mb-3 text-[14px] font-semibold text-text-primary">
-        Assembly Steps
-      </h2>
-      <AnalysisPanel />
-      <div className="flex flex-col gap-1">
+    <div className="flex flex-col" ref={listRef}>
+      {/* Panel header */}
+      <div className="flex items-center justify-between px-4 pt-3 pb-2">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-text-tertiary">
+            Assembly Steps
+          </span>
+          <span className="text-[10px] tabular-nums text-text-tertiary">
+            {assembly.stepOrder.length}
+          </span>
+        </div>
+        <button
+          onClick={openUpload}
+          className="text-[11px] font-medium text-text-tertiary transition-colors hover:text-text-primary"
+          title="Upload STEP file"
+        >
+          + Upload
+        </button>
+      </div>
+
+      <div className="px-4 pb-2">
+        <AnalysisPanel />
+      </div>
+
+      <div className="flex flex-col">
         {assembly.stepOrder.map((stepId, index) => {
           const step = assembly.steps[stepId];
           if (!step) return null;

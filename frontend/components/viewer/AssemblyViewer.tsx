@@ -20,7 +20,6 @@ import { ViewerControls } from "./ViewerControls";
 import { AnimationTimeline } from "./AnimationTimeline";
 import { RobotArm } from "./RobotArm";
 import { ExecutionCameraController } from "./ExecutionCameraController";
-import { SuccessParticles } from "./SuccessParticles";
 import { ExecutionProgressHUD } from "./ExecutionProgressHUD";
 
 // ---------------------------------------------------------------------------
@@ -166,34 +165,6 @@ export function AssemblyViewer() {
     [centroid, assemblyRadius, layout.groundY],
   );
 
-  // Success particle burst tracking
-  const [burstPos, setBurstPos] = useState<Vec3 | null>(null);
-  const prevStepStatesRef = useRef<Record<string, { status: string }>>({});
-
-  useEffect(() => {
-    const stepStates = executionState.stepStates;
-    for (const stepId of Object.keys(stepStates)) {
-      const curr = stepStates[stepId];
-      const prev = prevStepStatesRef.current[stepId];
-      if (curr && prev?.status !== "success" && curr.status === "success") {
-        const step = steps[stepId];
-        if (step) {
-          const partId = step.partIds[0];
-          const part = partId ? assembly?.parts[partId] : undefined;
-          if (part?.position) {
-            setBurstPos(part.position as Vec3);
-            setTimeout(() => setBurstPos(null), 800);
-          }
-        }
-      }
-    }
-    const snapshot: Record<string, { status: string }> = {};
-    for (const [k, v] of Object.entries(stepStates)) {
-      snapshot[k] = { status: v.status };
-    }
-    prevStepStatesRef.current = snapshot;
-  }, [executionState.stepStates, steps, assembly]);
-
   // Pre-compute part → first step id mapping
   const partToStepId = useMemo(() => {
     const map: Record<string, string | null> = {};
@@ -235,10 +206,10 @@ export function AssemblyViewer() {
   );
 
   return (
-    <div className="relative h-full w-full">
+    <div className="relative h-full w-full" style={{ boxShadow: "inset 0 1px 0 0 rgba(0,0,0,0.04)" }}>
       <Canvas
         camera={{ position: layout.cameraPos, fov: 45, near: layout.near, far: layout.far }}
-        style={{ background: "linear-gradient(180deg, #F5F5F3 0%, #EAEAE8 100%)" }}
+        style={{ background: "radial-gradient(ellipse at center, #FAFAFA 0%, #F0F0F2 100%)" }}
         shadows
       >
         <CameraSetup layout={layout} controlsRef={controlsRef} />
@@ -310,11 +281,6 @@ export function AssemblyViewer() {
           executionAnimRef={executionAnimRef}
           assemblyCenter={centroid}
           assemblyRadius={assemblyRadius}
-        />
-
-        <SuccessParticles
-          burstPosition={burstPos}
-          scale={assemblyRadius}
         />
 
         <OrbitControls

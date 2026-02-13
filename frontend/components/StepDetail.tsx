@@ -69,12 +69,12 @@ export function StepDetail() {
         </div>
       </div>
 
-      {/* Success criteria */}
-      <div>
-        <span className="text-[11px] font-medium uppercase tracking-[0.02em] text-text-tertiary">
+      {/* Success criteria — spec-sheet style */}
+      <div className="flex items-baseline gap-3 border-t border-bg-tertiary pt-3">
+        <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.06em] text-text-tertiary">
           Success Criteria
         </span>
-        <p className="mt-0.5 text-[12px] text-text-secondary">
+        <p className="text-[12px] text-text-secondary">
           {step.successCriteria.type.replace(/_/g, " ")}
           {step.successCriteria.threshold != null &&
             ` (threshold: ${step.successCriteria.threshold})`}
@@ -87,7 +87,7 @@ export function StepDetail() {
       {metrics && (
         <div className="grid grid-cols-3 gap-3">
           <div>
-            <span className="text-[11px] font-medium uppercase tracking-[0.02em] text-text-tertiary">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.06em] text-text-tertiary">
               Success Rate
             </span>
             <p className="font-mono text-[20px] font-medium tabular-nums text-text-primary">
@@ -95,7 +95,7 @@ export function StepDetail() {
             </p>
           </div>
           <div>
-            <span className="text-[11px] font-medium uppercase tracking-[0.02em] text-text-tertiary">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.06em] text-text-tertiary">
               Avg Duration
             </span>
             <p className="font-mono text-[20px] font-medium tabular-nums text-text-primary">
@@ -103,7 +103,7 @@ export function StepDetail() {
             </p>
           </div>
           <div>
-            <span className="text-[11px] font-medium uppercase tracking-[0.02em] text-text-tertiary">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.06em] text-text-tertiary">
               Demos
             </span>
             <p className="font-mono text-[20px] font-medium tabular-nums text-text-primary">

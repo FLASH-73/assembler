@@ -18,9 +18,9 @@ export function GroundPlane({
       <Grid
         args={[2, 2]}
         cellSize={cellSize}
-        cellColor="#EDECE9"
+        cellColor="#E8E8EA"
         sectionSize={sectionSize}
-        sectionColor="#DEDDD9"
+        sectionColor="#D4D4D8"
         fadeDistance={sectionSize * 8}
         fadeStrength={1.2}
         infiniteGrid

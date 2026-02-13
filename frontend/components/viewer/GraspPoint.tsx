@@ -18,7 +18,7 @@ export function GraspPoint({ position, index }: GraspPointProps) {
         onPointerEnter={() => setHovered(true)}
         onPointerLeave={() => setHovered(false)}
       >
-        <meshBasicMaterial color="#E05A1A" transparent opacity={0.8} />
+        <meshBasicMaterial color="#2563EB" transparent opacity={0.8} />
       </Sphere>
 
       {hovered && (
