@@ -33,6 +33,10 @@ export interface PartRenderState {
   position: Vec3;
   opacity: number;
   visualState: "ghost" | "active" | "complete";
+  /** Execution mode: override part color (e.g. red flash on fail). */
+  colorOverride?: string | null;
+  /** Execution mode: emissive glow intensity 0..1. */
+  emissiveIntensity?: number;
 }
 
 // ---------------------------------------------------------------------------

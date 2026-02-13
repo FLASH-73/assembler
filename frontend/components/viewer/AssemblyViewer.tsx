@@ -7,14 +7,20 @@ import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import type { PerspectiveCamera } from "three";
 import { useAssembly } from "@/context/AssemblyContext";
 import { useExecution } from "@/context/ExecutionContext";
-import { partStepIndex } from "@/lib/animation";
+import { computeCentroid, computeAssemblyRadius, partStepIndex } from "@/lib/animation";
+import type { Vec3 } from "@/lib/animation";
 import { useAnimationControls } from "@/lib/useAnimationControls";
+import { INITIAL_EXEC_ANIM } from "@/lib/executionAnimation";
+import type { ExecutionAnimState } from "@/lib/executionAnimation";
 import { GroundPlane } from "./GroundPlane";
 import { PartMesh } from "./PartMesh";
 import { ApproachVector } from "./ApproachVector";
 import { AnimationController } from "./AnimationController";
 import { ViewerControls } from "./ViewerControls";
 import { AnimationTimeline } from "./AnimationTimeline";
+import { RobotArm } from "./RobotArm";
+import { ExecutionCameraController } from "./ExecutionCameraController";
+import { SuccessParticles } from "./SuccessParticles";
 
 // ---------------------------------------------------------------------------
 // Camera helper — updates camera + controls when assembly changes
@@ -142,6 +148,51 @@ export function AssemblyViewer() {
 
   const layout = useMemo(() => computeLayout(parts), [parts]);
 
+  // Geometry for execution animation
+  const centroid = useMemo<Vec3>(() => computeCentroid(parts), [parts]);
+  const assemblyRadius = useMemo(
+    () => computeAssemblyRadius(parts, centroid),
+    [parts, centroid],
+  );
+
+  // Execution animation state
+  const executionAnimRef = useRef<ExecutionAnimState>({ ...INITIAL_EXEC_ANIM });
+  const executionActive = executionState.phase === "running" || executionState.phase === "paused";
+
+  // Robot arm base position (left of assembly, at ground level)
+  const armBase = useMemo<Vec3>(
+    () => [centroid[0] - assemblyRadius * 1.5, layout.groundY, centroid[2]],
+    [centroid, assemblyRadius, layout.groundY],
+  );
+
+  // Success particle burst tracking
+  const [burstPos, setBurstPos] = useState<Vec3 | null>(null);
+  const prevStepStatesRef = useRef<Record<string, { status: string }>>({});
+
+  useEffect(() => {
+    const stepStates = executionState.stepStates;
+    for (const stepId of Object.keys(stepStates)) {
+      const curr = stepStates[stepId];
+      const prev = prevStepStatesRef.current[stepId];
+      if (curr && prev?.status !== "success" && curr.status === "success") {
+        const step = steps[stepId];
+        if (step) {
+          const partId = step.partIds[0];
+          const part = partId ? assembly?.parts[partId] : undefined;
+          if (part?.position) {
+            setBurstPos(part.position as Vec3);
+            setTimeout(() => setBurstPos(null), 800);
+          }
+        }
+      }
+    }
+    const snapshot: Record<string, { status: string }> = {};
+    for (const [k, v] of Object.entries(stepStates)) {
+      snapshot[k] = { status: v.status };
+    }
+    prevStepStatesRef.current = snapshot;
+  }, [executionState.stepStates, steps, assembly]);
+
   // Pre-compute part → first step id mapping
   const partToStepId = useMemo(() => {
     const map: Record<string, string | null> = {};
@@ -153,12 +204,13 @@ export function AssemblyViewer() {
     return map;
   }, [assembly, parts]);
 
-  // Force idle during live execution
+  // Force demo idle during live execution + reset execution anim state
   useEffect(() => {
-    if (executionState.phase === "running" || executionState.phase === "paused") {
+    if (executionActive) {
       anim.forceIdle();
+      executionAnimRef.current = { ...INITIAL_EXEC_ANIM };
     }
-  }, [executionState.phase, anim]);
+  }, [executionActive, anim]);
 
   const handlePartClick = useCallback(
     (partId: string) => {
@@ -195,6 +247,9 @@ export function AssemblyViewer() {
           renderStatesRef={anim.renderStatesRef}
           scrubberProgressRef={anim.scrubberProgressRef}
           onPhaseChange={anim.onPhaseChange}
+          executionActive={executionActive}
+          executionState={executionState}
+          executionAnimRef={executionAnimRef}
         />
 
         {assembly &&
@@ -220,6 +275,25 @@ export function AssemblyViewer() {
             </group>
           ))}
 
+        <RobotArm
+          basePosition={armBase}
+          executionAnimRef={executionAnimRef}
+          visible={executionActive}
+          assemblyRadius={assemblyRadius}
+        />
+
+        <ExecutionCameraController
+          controlsRef={controlsRef}
+          executionActive={executionActive}
+          executionAnimRef={executionAnimRef}
+          assemblyCenter={centroid}
+        />
+
+        <SuccessParticles
+          burstPosition={burstPos}
+          scale={assemblyRadius}
+        />
+
         <OrbitControls
           ref={controlsRef}
           enableDamping
@@ -230,22 +304,24 @@ export function AssemblyViewer() {
         />
       </Canvas>
 
-      <ViewerControls
-        exploded={exploded}
-        onToggleExplode={() => setExploded((e) => !e)}
-        wireframe={wireframe}
-        onToggleWireframe={() => setWireframe((w) => !w)}
-        animating={anim.isAnimating}
-        paused={anim.isPaused}
-        onToggleAnimation={anim.toggleAnimation}
-        onStepForward={anim.stepForward}
-        onStepBackward={anim.stepBackward}
-        onResetView={() => controlsRef.current?.reset()}
-        onReplayDemo={anim.replayDemo}
-        demoPlayed={anim.demoPlayed}
-      />
+      {!executionActive && (
+        <ViewerControls
+          exploded={exploded}
+          onToggleExplode={() => setExploded((e) => !e)}
+          wireframe={wireframe}
+          onToggleWireframe={() => setWireframe((w) => !w)}
+          animating={anim.isAnimating}
+          paused={anim.isPaused}
+          onToggleAnimation={anim.toggleAnimation}
+          onStepForward={anim.stepForward}
+          onStepBackward={anim.stepBackward}
+          onResetView={() => controlsRef.current?.reset()}
+          onReplayDemo={anim.replayDemo}
+          demoPlayed={anim.demoPlayed}
+        />
+      )}
 
-      {(anim.isAnimating || anim.demoPlayed) && (
+      {!executionActive && (anim.isAnimating || anim.demoPlayed) && (
         <AnimationTimeline
           totalSteps={totalSteps}
           scrubberProgressRef={anim.scrubberProgressRef}

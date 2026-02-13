@@ -119,6 +119,10 @@ export function PartMesh({
       color = part.color ?? "#B0AEA8";
     }
 
+    // Execution-mode overrides
+    if (rs.colorOverride) color = rs.colorOverride;
+    const emissive = rs.emissiveIntensity ?? 0;
+
     if (hasGlb) {
       // GLB path: traverse all meshes in the loaded scene
       groupRef.current.traverse((child) => {
@@ -128,8 +132,13 @@ export function PartMesh({
             mat.opacity = opacity;
             mat.transparent = transparent;
             mat.wireframe = wire;
-            if (isGhost) mat.color.set(GHOST_COLOR);
+            if (rs.colorOverride) mat.color.set(rs.colorOverride);
+            else if (isGhost) mat.color.set(GHOST_COLOR);
             else if (effectiveState === "complete" && !isSelected) mat.color.set(COMPLETE_COLOR);
+            if (mat.emissive) {
+              mat.emissive.set(emissive > 0 ? color : "#000000");
+              mat.emissiveIntensity = emissive;
+            }
           }
         }
       });
@@ -140,6 +149,8 @@ export function PartMesh({
       matRef.current.transparent = transparent;
       matRef.current.wireframe = wire;
       matRef.current.color.set(color);
+      matRef.current.emissive.set(emissive > 0 ? color : "#000000");
+      matRef.current.emissiveIntensity = emissive;
     }
   });
 

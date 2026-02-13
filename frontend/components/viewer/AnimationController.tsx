@@ -6,7 +6,7 @@
 
 import { useEffect, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import type { Part } from "@/lib/types";
+import type { AssemblyStep, ExecutionState, Part } from "@/lib/types";
 import {
   type AnimationPhase,
   type AnimationState,
@@ -17,10 +17,17 @@ import {
   computeCentroid,
   computeAssemblyRadius,
   computePartAnimation,
+  partStepIndex,
   easeInOut,
   stepToScrubber,
   TIMING,
 } from "@/lib/animation";
+import {
+  type ExecutionAnimState,
+  tickExecutionAnim,
+  computeExecutionPartState,
+  computeEndEffectorTarget,
+} from "@/lib/executionAnimation";
 
 interface AnimationControllerProps {
   parts: Part[];
@@ -31,6 +38,9 @@ interface AnimationControllerProps {
   renderStatesRef: React.RefObject<Record<string, PartRenderState>>;
   scrubberProgressRef: React.RefObject<number>;
   onPhaseChange: (phase: AnimationPhase) => void;
+  executionActive: boolean;
+  executionState: ExecutionState;
+  executionAnimRef: React.RefObject<ExecutionAnimState>;
 }
 
 export function AnimationController({
@@ -42,6 +52,9 @@ export function AnimationController({
   renderStatesRef,
   scrubberProgressRef,
   onPhaseChange,
+  executionActive,
+  executionState,
+  executionAnimRef,
 }: AnimationControllerProps) {
   const centroidRef = useRef<Vec3>([0, 0, 0]);
   const radiusRef = useRef(0.1);
@@ -59,7 +72,56 @@ export function AnimationController({
     explodeOffsetsRef.current = offsets;
   }, [parts]);
 
-  useFrame((_, delta) => {
+  useFrame(({ clock }, delta) => {
+    // ---- EXECUTION MODE ----
+    if (executionActive && executionAnimRef.current) {
+      const nextExec = tickExecutionAnim(
+        executionAnimRef.current,
+        delta,
+        executionState,
+        stepOrder,
+      );
+      Object.assign(executionAnimRef.current, nextExec);
+
+      const result: Record<string, PartRenderState> = {};
+      const neutralEE: Vec3 = [
+        centroidRef.current[0],
+        centroidRef.current[1] + radiusRef.current * 0.8,
+        centroidRef.current[2],
+      ];
+
+      // Determine the next step index (one after current running step)
+      const currentIdx = executionState.currentStepId
+        ? stepOrder.indexOf(executionState.currentStepId)
+        : -1;
+      const nextStepId = currentIdx >= 0 && currentIdx + 1 < stepOrder.length
+        ? stepOrder[currentIdx + 1]
+        : null;
+
+      for (const part of parts) {
+        const psi = partStepIndex(part.id, stepOrder, steps);
+        const stepId = psi >= 0 ? stepOrder[psi] : undefined;
+        const step = stepId ? (steps[stepId] as unknown as AssemblyStep) : undefined;
+        const stepAnim = stepId ? nextExec.stepAnims[stepId] : undefined;
+        const isNextStep = stepId === nextStepId;
+
+        result[part.id] = computeExecutionPartState(
+          part, step, stepAnim, radiusRef.current, clock.elapsedTime, isNextStep,
+        );
+
+        // Update end-effector target for the currently running step
+        if (stepId === executionState.currentStepId && stepAnim) {
+          executionAnimRef.current.endEffectorTarget = computeEndEffectorTarget(
+            part, step, stepAnim, radiusRef.current, neutralEE,
+          );
+        }
+      }
+
+      renderStatesRef.current = result;
+      return;
+    }
+
+    // ---- DEMO MODE (existing logic, unchanged) ----
     const prev = animStateRef.current;
     if (!prev) return;
 
