@@ -36,6 +36,9 @@ dev = [
     "pytest-asyncio",
     "httpx",
 ]
+hardware = [
+    "pyserial>=3.5",
+]
 
 [tool.ruff]
 line-length = 100
