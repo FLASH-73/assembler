@@ -7,6 +7,7 @@ import { useConnectionStatus } from "@/lib/hooks";
 import { useWebSocket } from "@/context/WebSocketContext";
 import { RunControls } from "./RunControls";
 import { UploadDialog } from "./UploadDialog";
+import { AssemblySelector } from "./AssemblySelector";
 
 function ConnectionDot() {
   const { isConnected } = useConnectionStatus();
@@ -35,7 +36,7 @@ function ConnectionDot() {
 }
 
 export function TopBar() {
-  const { assemblies, assembly, selectAssembly, refreshAssemblies } = useAssembly();
+  const { selectAssembly, refreshAssemblies } = useAssembly();
   const [uploadOpen, setUploadOpen] = useState(false);
 
   // Listen for upload trigger from StepList
@@ -65,17 +66,7 @@ export function TopBar() {
             </span>
             <span className="text-[16px] text-text-tertiary">&middot;</span>
           </div>
-          <select
-            value={assembly?.id ?? ""}
-            onChange={(e) => selectAssembly(e.target.value)}
-            className="appearance-none rounded bg-transparent px-2 py-1 text-[13px] text-text-primary outline-none transition-colors hover:bg-bg-secondary"
-          >
-            {assemblies.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.name}
-              </option>
-            ))}
-          </select>
+          <AssemblySelector />
           <ConnectionDot />
         </div>
 

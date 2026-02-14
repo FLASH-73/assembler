@@ -12,6 +12,7 @@ import { MiniChart } from "./MiniChart";
 import { RecordingControls } from "./RecordingControls";
 import { DemoList } from "./DemoList";
 import { TrainingProgress } from "./TrainingProgress";
+import { StepConfigFields } from "./StepConfigFields";
 
 function formatMs(ms: number): string {
   if (ms < 1000) return `${ms}ms`;
@@ -54,34 +55,10 @@ export function StepDetail() {
           {runtimeState && <StatusBadge status={runtimeState.status} />}
         </div>
 
-        <div className="mt-1 flex items-center gap-2 text-[12px] text-text-secondary">
-          <span className="rounded bg-bg-secondary px-1.5 py-0.5 font-medium">
-            {step.handler}
-          </span>
-          {step.primitiveType && (
-            <span className="text-text-tertiary">{step.primitiveType}</span>
-          )}
-          {step.handler === "policy" && (
-            <span className="text-text-tertiary">
-              {step.policyId ?? "no policy trained"}
-            </span>
-          )}
-        </div>
       </div>
 
-      {/* Success criteria — card style */}
-      <div className="rounded-lg bg-bg-secondary p-2.5">
-        <span className="text-[10px] font-semibold uppercase tracking-[0.06em] text-text-tertiary">
-          Success Criteria
-        </span>
-        <p className="mt-1 text-[12px] text-text-secondary">
-          {step.successCriteria.type.replace(/_/g, " ")}
-          {step.successCriteria.threshold != null &&
-            ` (threshold: ${step.successCriteria.threshold})`}
-          {step.successCriteria.pattern &&
-            ` \u2014 ${step.successCriteria.pattern}`}
-        </p>
-      </div>
+      {/* Step configuration (editable) */}
+      <StepConfigFields step={step} />
 
       {/* Metrics */}
       {metrics && (

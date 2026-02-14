@@ -18,6 +18,7 @@ import {
   MOCK_EXECUTION_STATE,
   MOCK_STEP_METRICS,
 } from "./mock-data";
+import { recordingEvents } from "./recording-events";
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -102,9 +103,11 @@ export const api = {
   pauseExecution: () => post("/execution/pause"),
   resumeExecution: () => post("/execution/resume"),
   stopExecution: () => post("/execution/stop"),
+  emergencyStop: () => post("/hardware/estop"),
   intervene: () => post("/execution/intervene"),
 
-  // --- Step updates ---
+  // --- Assembly + step updates ---
+  renameAssembly: (id: string, name: string) => patch(`/assemblies/${id}`, { name }),
   updateStep: (assemblyId: string, stepId: string, data: Partial<AssemblyStep>) =>
     patch(`/assemblies/${assemblyId}/steps/${stepId}`, data),
 
@@ -137,9 +140,21 @@ export const api = {
   stopHoming: () => post("/homing/stop"),
 
   // --- Recording ---
-  startRecording: (stepId: string) => post(`/recording/step/${stepId}/start`),
-  stopRecording: () => post("/recording/stop"),
-  discardRecording: () => post("/recording/discard"),
+  startRecording: async (stepId: string) => {
+    const result = await post(`/recording/step/${stepId}/start`);
+    recordingEvents.emit({ type: "started", stepId, startTime: Date.now() });
+    return result;
+  },
+  stopRecording: async () => {
+    const result = await post("/recording/stop");
+    recordingEvents.emit({ type: "stopped" });
+    return result;
+  },
+  discardRecording: async () => {
+    const result = await post("/recording/discard");
+    recordingEvents.emit({ type: "discarded" });
+    return result;
+  },
   getDemos: (assemblyId: string, stepId: string) =>
     withMockFallback(
       () => get<Demo[]>(`/recording/demos/${assemblyId}/${stepId}`),

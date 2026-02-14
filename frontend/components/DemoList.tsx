@@ -2,7 +2,6 @@
 
 import useSWR from "swr";
 import { api } from "@/lib/api";
-import { ActionButton } from "./ActionButton";
 
 interface DemoListProps {
   assemblyId: string;
@@ -46,7 +45,7 @@ export function DemoList({ assemblyId, stepId }: DemoListProps) {
         {demos.map((demo) => (
           <div
             key={demo.id}
-            className="flex items-center justify-between rounded bg-bg-secondary px-2 py-1"
+            className="group flex items-center justify-between rounded bg-bg-secondary px-2 py-1"
           >
             <div className="flex items-center gap-3 text-[12px]">
               <span className="font-mono text-text-secondary">
@@ -56,13 +55,23 @@ export function DemoList({ assemblyId, stepId }: DemoListProps) {
                 {formatDuration(demo.durationMs)}
               </span>
             </div>
-            <ActionButton
-              variant="danger"
-              className="!px-2 !py-0.5 !text-[11px]"
+            <button
+              title="Delete demo"
+              className="flex-shrink-0 opacity-0 transition-opacity group-hover:opacity-100 text-text-tertiary hover:text-status-error"
               onClick={() => void handleDelete(demo.id)}
             >
-              Delete
-            </ActionButton>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 14 14"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              >
+                <path d="M2.5 3.5h9M5.5 3.5V2.5h3v1M5.5 5.5v5M8.5 5.5v5M3.5 3.5h7v8.5a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1z" />
+              </svg>
+            </button>
           </div>
         ))}
       </div>

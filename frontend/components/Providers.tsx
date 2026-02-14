@@ -5,13 +5,16 @@ import { SWRConfig } from "swr";
 import { WebSocketProvider } from "@/context/WebSocketContext";
 import { AssemblyProvider } from "@/context/AssemblyContext";
 import { ExecutionProvider } from "@/context/ExecutionContext";
+import { TeachingProvider } from "@/context/TeachingContext";
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
     <SWRConfig value={{ revalidateOnFocus: false, shouldRetryOnError: false }}>
       <WebSocketProvider>
         <AssemblyProvider>
-          <ExecutionProvider>{children}</ExecutionProvider>
+          <ExecutionProvider>
+            <TeachingProvider>{children}</TeachingProvider>
+          </ExecutionProvider>
         </AssemblyProvider>
       </WebSocketProvider>
     </SWRConfig>

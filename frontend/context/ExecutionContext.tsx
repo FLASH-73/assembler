@@ -27,6 +27,7 @@ interface ExecutionContextValue {
   pauseExecution: () => void;
   resumeExecution: () => void;
   stopExecution: () => void;
+  emergencyStop: () => void;
   intervene: () => void;
 }
 
@@ -220,6 +221,22 @@ export function ExecutionProvider({ children }: { children: ReactNode }) {
     }
   }, [clearTimer, assembly, wsActive]);
 
+  const emergencyStop = useCallback(() => {
+    api.emergencyStop().catch(console.warn);
+    api.stopExecution().catch(console.warn);
+    api.stopTeleop().catch(console.warn);
+    clearTimer();
+    stepIndexRef.current = 0;
+    setState((prev) => ({
+      ...prev,
+      phase: "idle",
+      currentStepId: null,
+      stepStates: makeIdleStepStates(assembly?.stepOrder ?? []),
+      startTime: null,
+      elapsedMs: 0,
+    }));
+  }, [clearTimer, assembly]);
+
   const intervene = useCallback(() => {
     api.intervene().catch(console.warn);
     clearTimer();
@@ -251,9 +268,10 @@ export function ExecutionProvider({ children }: { children: ReactNode }) {
       pauseExecution,
       resumeExecution,
       stopExecution,
+      emergencyStop,
       intervene,
     }),
-    [state, startExecution, pauseExecution, resumeExecution, stopExecution, intervene],
+    [state, startExecution, pauseExecution, resumeExecution, stopExecution, emergencyStop, intervene],
   );
 
   return (

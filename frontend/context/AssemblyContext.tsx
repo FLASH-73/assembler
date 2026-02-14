@@ -11,7 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import useSWR, { mutate as globalMutate } from "swr";
-import type { Assembly, AssemblySummary } from "@/lib/types";
+import type { Assembly, AssemblyStep, AssemblySummary } from "@/lib/types";
 import { MOCK_ASSEMBLY, MOCK_SUMMARIES } from "@/lib/mock-data";
 import { api } from "@/lib/api";
 
@@ -24,6 +24,7 @@ interface AssemblyContextValue {
   selectAssembly: (assemblyId: string, data?: Assembly) => void;
   refreshAssemblies: () => void;
   deleteAssembly: (id: string) => Promise<void>;
+  updateStep: (stepId: string, data: Partial<AssemblyStep>) => Promise<void>;
 }
 
 const AssemblyContext = createContext<AssemblyContextValue | null>(null);
@@ -90,6 +91,31 @@ export function AssemblyProvider({ children }: { children: ReactNode }) {
     [assemblyId, mutateAssemblies],
   );
 
+  const updateStep = useCallback(
+    async (stepId: string, data: Partial<AssemblyStep>) => {
+      if (!assembly) return;
+      const prev = assembly;
+      const swrKey = `/assemblies/${assembly.id}`;
+
+      // Optimistic: merge partial into step (existing step has all required fields)
+      const updatedStep: AssemblyStep = { ...assembly.steps[stepId], ...data } as AssemblyStep;
+      const optimistic: Assembly = {
+        ...assembly,
+        steps: { ...assembly.steps, [stepId]: updatedStep },
+      };
+      void globalMutate(swrKey, optimistic, false);
+
+      try {
+        await api.updateStep(assembly.id, stepId, data);
+        void globalMutate(swrKey); // revalidate from server
+      } catch {
+        void globalMutate(swrKey, prev, false); // rollback
+        throw new Error("Failed to save");
+      }
+    },
+    [assembly],
+  );
+
   const value = useMemo<AssemblyContextValue>(
     () => ({
       assemblies,
@@ -100,8 +126,9 @@ export function AssemblyProvider({ children }: { children: ReactNode }) {
       selectAssembly,
       refreshAssemblies,
       deleteAssembly,
+      updateStep,
     }),
-    [assemblies, assembly, isLoading, selectedStepId, selectStep, selectAssembly, refreshAssemblies, deleteAssembly],
+    [assemblies, assembly, isLoading, selectedStepId, selectStep, selectAssembly, refreshAssemblies, deleteAssembly, updateStep],
   );
 
   return (
