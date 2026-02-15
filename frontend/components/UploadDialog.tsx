@@ -25,6 +25,9 @@ export function UploadDialog({ open, onClose, onSuccess }: UploadDialogProps) {
   const [phase, setPhase] = useState<UploadPhase>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [parsedAssembly, setParsedAssembly] = useState<Assembly | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [progressStage, setProgressStage] = useState("");
+  const [progressDetail, setProgressDetail] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Reset state when dialog opens
@@ -33,6 +36,9 @@ export function UploadDialog({ open, onClose, onSuccess }: UploadDialogProps) {
       setPhase("idle");
       setErrorMessage(null);
       setParsedAssembly(null);
+      setProgress(0);
+      setProgressStage("");
+      setProgressDetail("");
     }
   }, [open]);
 
@@ -58,7 +64,13 @@ export function UploadDialog({ open, onClose, onSuccess }: UploadDialogProps) {
       setPhase("uploading");
       setErrorMessage(null);
       try {
-        const assembly = await api.uploadCAD(file);
+        const assembly = await api.uploadCADStreaming(file, (event) => {
+        if (event.type === "progress") {
+          setProgress(event.progress);
+          setProgressStage(event.stage);
+          setProgressDetail(event.detail);
+        }
+      });
         setParsedAssembly(assembly);
         setPhase("summary");
       } catch (err) {
@@ -153,12 +165,25 @@ export function UploadDialog({ open, onClose, onSuccess }: UploadDialogProps) {
               onClick={() => inputRef.current?.click()}
             >
               {isUploading ? (
-                <>
-                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-bg-tertiary border-t-signal" />
-                  <span className="mt-2 text-[13px] text-text-secondary">
-                    Parsing CAD geometry...
+                <div className="flex w-full flex-col items-center px-6 py-2">
+                  <span className="text-[12px] font-medium capitalize text-text-primary">
+                    {progressStage.replace(/_/g, " ") || "Preparing\u2026"}
                   </span>
-                </>
+                  <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-bg-tertiary">
+                    <div
+                      className="h-full rounded-full bg-signal transition-all duration-300 ease-out"
+                      style={{ width: `${Math.max(progress * 100, 2)}%` }}
+                    />
+                  </div>
+                  <div className="mt-2 flex w-full items-center justify-between gap-2">
+                    <span className="max-w-[75%] truncate text-[11px] text-text-tertiary">
+                      {progressDetail || "Starting\u2026"}
+                    </span>
+                    <span className="text-[11px] font-medium tabular-nums text-text-secondary">
+                      {Math.round(progress * 100)}%
+                    </span>
+                  </div>
+                </div>
               ) : (
                 <>
                   <svg

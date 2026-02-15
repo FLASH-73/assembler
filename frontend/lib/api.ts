@@ -61,6 +61,68 @@ async function del(path: string): Promise<void> {
   if (!res.ok) throw new Error(`API error: ${res.status}`);
 }
 
+// --- Streaming upload progress types ---
+
+export type UploadProgressEvent =
+  | { type: "progress"; stage: string; detail: string; progress: number }
+  | { type: "complete"; assembly: Assembly }
+  | { type: "error"; detail: string };
+
+/**
+ * Upload a STEP file and stream NDJSON progress events.
+ * Returns the parsed Assembly once the stream completes.
+ */
+async function uploadCADStreaming(
+  file: File,
+  onProgress: (event: UploadProgressEvent) => void,
+): Promise<Assembly> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetch(`${BASE}/assemblies/upload`, { method: "POST", body: form });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(text || `Upload failed: ${res.status}`);
+  }
+  if (!res.body) throw new Error("No response body for streaming upload");
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let assembly: Assembly | null = null;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    // Process all complete NDJSON lines in the buffer
+    let newlineIdx: number;
+    while ((newlineIdx = buffer.indexOf("\n")) !== -1) {
+      const line = buffer.slice(0, newlineIdx).trim();
+      buffer = buffer.slice(newlineIdx + 1);
+      if (!line) continue;
+
+      try {
+        const event = JSON.parse(line) as UploadProgressEvent;
+        onProgress(event);
+
+        if (event.type === "complete") {
+          assembly = event.assembly;
+        } else if (event.type === "error") {
+          throw new Error(event.detail);
+        }
+      } catch (e) {
+        if (e instanceof SyntaxError) continue; // skip malformed lines
+        throw e; // re-throw Error from "error" event
+      }
+    }
+  }
+
+  if (!assembly) throw new Error("Upload stream ended without a result");
+  return assembly;
+}
+
 // Mock fallback — only catches network errors (TypeError from fetch when
 // server is unreachable). HTTP errors (4xx/5xx) propagate normally.
 async function withMockFallback<T>(fetcher: () => Promise<T>, fallback: T): Promise<T> {
@@ -173,6 +235,7 @@ export const api = {
 
   // --- Upload ---
   uploadCAD: (file: File) => postFile<Assembly>("/assemblies/upload", file),
+  uploadCADStreaming,
 
   // --- Delete ---
   deleteAssembly: (id: string) => del(`/assemblies/${id}`),

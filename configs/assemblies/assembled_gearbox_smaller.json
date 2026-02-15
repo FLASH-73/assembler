@@ -8,12 +8,12 @@
       "meshFile": "/meshes/assembled_gearbox_smaller/ring_gear_v1.glb",
       "graspPoints": [],
       "position": [
-        -0.003032861,
-        0.000164023,
-        -0.002300359
+        -0.003033,
+        0.000164,
+        0.0397
       ],
       "rotation": [
-        -0.0,
+        0.0,
         0.0,
         0.0
       ],
@@ -26,7 +26,12 @@
       "color": "#7A7974",
       "layoutPosition": [
         0.0,
-        0.012006294,
+        0.0329399035,
+        0.0
+      ],
+      "layoutRotation": [
+        0.0,
+        0.0,
         0.0
       ],
       "isBase": true
@@ -37,26 +42,31 @@
       "meshFile": "/meshes/assembled_gearbox_smaller/6708_bearing_v1.glb",
       "graspPoints": [],
       "position": [
-        -0.028032861000000003,
-        -0.024835977,
-        0.049699641
+        -0.003033,
+        0.000164,
+        0.0467
       ],
       "rotation": [
-        -1.570796,
+        0.0,
         0.0,
         0.0
       ],
       "geometry": "box",
       "dimensions": [
         0.05,
-        0.006,
-        0.05
+        0.05,
+        0.006
       ],
       "color": "#C4A882",
       "layoutPosition": [
-        0.069269,
-        0.003,
-        0.143838
+        -0.02902,
+        0.025,
+        0.208933
+      ],
+      "layoutRotation": [
+        0.0,
+        0.0,
+        0.0
       ],
       "isBase": false
     },
@@ -66,12 +76,12 @@
       "meshFile": "/meshes/assembled_gearbox_smaller/satellite_top_v1.glb",
       "graspPoints": [],
       "position": [
-        -0.053032861,
-        0.050164023,
-        0.042699641
+        -0.003033,
+        0.000164,
+        0.0442
       ],
       "rotation": [
-        -0.0,
+        0.0,
         0.0,
         0.0
       ],
@@ -83,24 +93,29 @@
       ],
       "color": "#7A7974",
       "layoutPosition": [
-        0.138259,
-        0.0055,
-        0.079824
+        0.139168,
+        0.021,
+        0.158516
+      ],
+      "layoutRotation": [
+        0.0,
+        0.0,
+        0.0
       ],
       "isBase": false
     },
-    "satelite_gear_v1": {
-      "id": "satelite_gear_v1",
+    "spur_gear_12_teeth": {
+      "id": "spur_gear_12_teeth",
       "cadFile": null,
-      "meshFile": "/meshes/assembled_gearbox_smaller/satelite_gear_v1.glb",
+      "meshFile": "/meshes/assembled_gearbox_smaller/spur_gear_12_teeth.glb",
       "graspPoints": [],
       "position": [
-        -0.003032861,
-        0.000164023,
-        -0.002300359
+        0.013597,
+        -0.006724,
+        0.0337
       ],
       "rotation": [
-        -0.0,
+        0.0,
         0.0,
         0.0
       ],
@@ -110,26 +125,65 @@
         0.014,
         0.01
       ],
-      "color": "#8C9488",
+      "color": "#B8B0A0",
       "layoutPosition": [
-        -0.023794,
-        0.005,
-        0.157864
+        0.034513,
+        0.007,
+        0.208096
+      ],
+      "layoutRotation": [
+        0.0,
+        0.0,
+        0.0
       ],
       "isBase": false
     },
-    "satelite_gear_v1_2": {
-      "id": "satelite_gear_v1_2",
+    "spur_gear_12_teeth_2": {
+      "id": "spur_gear_12_teeth_2",
       "cadFile": null,
-      "meshFile": "/meshes/assembled_gearbox_smaller/satelite_gear_v1_2.glb",
+      "meshFile": "/meshes/assembled_gearbox_smaller/spur_gear_12_teeth_2.glb",
       "graspPoints": [],
       "position": [
-        -0.003032861,
-        0.000164023,
-        -0.002300359
+        -0.009921,
+        -0.016466,
+        0.0337
       ],
       "rotation": [
-        -0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "geometry": "box",
+      "dimensions": [
+        0.014001051,
+        0.014001051,
+        0.010001051
+      ],
+      "color": "#8C9488",
+      "layoutPosition": [
+        0.178226,
+        0.007001,
+        0.11283
+      ],
+      "layoutRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "isBase": false
+    },
+    "spur_gear_12_teeth_3": {
+      "id": "spur_gear_12_teeth_3",
+      "cadFile": null,
+      "meshFile": "/meshes/assembled_gearbox_smaller/spur_gear_12_teeth_3.glb",
+      "graspPoints": [],
+      "position": [
+        0.003855,
+        0.016794,
+        0.0337
+      ],
+      "rotation": [
+        0.0,
         0.0,
         0.0
       ],
@@ -141,24 +195,29 @@
       ],
       "color": "#C0B8B0",
       "layoutPosition": [
-        -0.069269,
-        0.005001,
-        0.143838
+        -0.089921,
+        0.007001,
+        0.190812
+      ],
+      "layoutRotation": [
+        0.0,
+        0.0,
+        0.0
       ],
       "isBase": false
     },
-    "satelite_gear_v1_3": {
-      "id": "satelite_gear_v1_3",
+    "spur_gear_12_teeth_4": {
+      "id": "spur_gear_12_teeth_4",
       "cadFile": null,
-      "meshFile": "/meshes/assembled_gearbox_smaller/satelite_gear_v1_3.glb",
+      "meshFile": "/meshes/assembled_gearbox_smaller/spur_gear_12_teeth_4.glb",
       "graspPoints": [],
       "position": [
-        -0.003032861,
-        0.000164023,
-        -0.002300359
+        -0.019663,
+        0.007052,
+        0.0337
       ],
       "rotation": [
-        -0.0,
+        0.0,
         0.0,
         0.0
       ],
@@ -170,38 +229,14 @@
       ],
       "color": "#B0AEA8",
       "layoutPosition": [
-        -0.108588,
-        0.005001,
-        0.11703
+        -0.130025,
+        0.007001,
+        0.166098
       ],
-      "isBase": false
-    },
-    "satelite_gear_v1_4": {
-      "id": "satelite_gear_v1_4",
-      "cadFile": null,
-      "meshFile": "/meshes/assembled_gearbox_smaller/satelite_gear_v1_4.glb",
-      "graspPoints": [],
-      "position": [
-        -0.003032861,
-        0.000164023,
-        -0.002300359
-      ],
-      "rotation": [
-        -0.0,
+      "layoutRotation": [
+        0.0,
         0.0,
         0.0
-      ],
-      "geometry": "box",
-      "dimensions": [
-        0.014001051,
-        0.014001051,
-        0.010001051
-      ],
-      "color": "#8A8884",
-      "layoutPosition": [
-        -0.138259,
-        0.005001,
-        0.079824
       ],
       "isBase": false
     },
@@ -211,41 +246,46 @@
       "meshFile": "/meshes/assembled_gearbox_smaller/satellite_base_v1.glb",
       "graspPoints": [],
       "position": [
-        -0.029211534,
-        0.062733524,
-        0.027699641
+        -0.003033,
+        0.000164,
+        0.0267
       ],
       "rotation": [
-        -0.0,
         0.0,
-        -0.383972
+        0.0,
+        0.0
       ],
       "geometry": "box",
       "dimensions": [
-        0.042528599,
-        0.043057197000000005,
+        0.042,
+        0.042,
         0.004
       ],
       "color": "#B8B0A0",
       "layoutPosition": [
-        0.108588,
-        0.002,
-        0.11703
+        -0.171235,
+        0.021,
+        0.123181
+      ],
+      "layoutRotation": [
+        0.0,
+        0.0,
+        0.0
       ],
       "isBase": false
     },
-    "sun_gear_v1": {
-      "id": "sun_gear_v1",
+    "spur_gear_24_teeth": {
+      "id": "spur_gear_24_teeth",
       "cadFile": null,
-      "meshFile": "/meshes/assembled_gearbox_smaller/sun_gear_v1.glb",
+      "meshFile": "/meshes/assembled_gearbox_smaller/spur_gear_24_teeth.glb",
       "graspPoints": [],
       "position": [
-        -0.003032861,
-        0.000164023,
-        -0.002300359
+        -0.003033,
+        0.000164,
+        0.0332
       ],
       "rotation": [
-        -0.0,
+        0.0,
         0.0,
         0.0
       ],
@@ -253,11 +293,16 @@
       "dimensions": [
         0.0135
       ],
-      "color": "#9CABA3",
+      "color": "#B8B0A0",
       "layoutPosition": [
-        0.023794,
+        0.084345,
         0.00675,
-        0.157864
+        0.193342
+      ],
+      "layoutRotation": [
+        0.0,
+        0.0,
+        0.0
       ],
       "isBase": false
     }
@@ -286,9 +331,9 @@
     },
     "step_002": {
       "id": "step_002",
-      "name": "Pick satellite_top_v1",
+      "name": "Pick spur_gear_12_teeth_2",
       "partIds": [
-        "satellite_top_v1"
+        "spur_gear_12_teeth_2"
       ],
       "dependencies": [
         "step_001"
@@ -296,7 +341,7 @@
       "handler": "primitive",
       "primitiveType": "pick",
       "primitiveParams": {
-        "part_id": "satellite_top_v1"
+        "part_id": "spur_gear_12_teeth_2"
       },
       "policyId": null,
       "successCriteria": {
@@ -309,22 +354,22 @@
     },
     "step_003": {
       "id": "step_003",
-      "name": "Assemble satellite_top_v1",
+      "name": "Assemble spur_gear_12_teeth_2",
       "partIds": [
-        "satellite_top_v1",
-        "satellite_base_v1"
+        "spur_gear_12_teeth_2",
+        "spur_gear_24_teeth",
+        "ring_gear_v1",
+        "satellite_top_v1"
       ],
       "dependencies": [
         "step_002"
       ],
-      "handler": "primitive",
-      "primitiveType": "place",
-      "primitiveParams": {
-        "part_id": "satellite_top_v1"
-      },
+      "handler": "policy",
+      "primitiveType": null,
+      "primitiveParams": null,
       "policyId": null,
       "successCriteria": {
-        "type": "position",
+        "type": "classifier",
         "threshold": null,
         "model": null,
         "pattern": null
@@ -333,9 +378,9 @@
     },
     "step_004": {
       "id": "step_004",
-      "name": "Pick 6708_bearing_v1",
+      "name": "Pick spur_gear_12_teeth",
       "partIds": [
-        "6708_bearing_v1"
+        "spur_gear_12_teeth"
       ],
       "dependencies": [
         "step_003"
@@ -343,7 +388,7 @@
       "handler": "primitive",
       "primitiveType": "pick",
       "primitiveParams": {
-        "part_id": "6708_bearing_v1"
+        "part_id": "spur_gear_12_teeth"
       },
       "policyId": null,
       "successCriteria": {
@@ -356,11 +401,12 @@
     },
     "step_005": {
       "id": "step_005",
-      "name": "Assemble 6708_bearing_v1",
+      "name": "Assemble spur_gear_12_teeth",
       "partIds": [
-        "6708_bearing_v1",
+        "spur_gear_12_teeth",
+        "spur_gear_24_teeth",
         "ring_gear_v1",
-        "sun_gear_v1"
+        "satellite_top_v1"
       ],
       "dependencies": [
         "step_004"
@@ -370,18 +416,18 @@
       "primitiveParams": null,
       "policyId": null,
       "successCriteria": {
-        "type": "force_signature",
+        "type": "classifier",
         "threshold": null,
         "model": null,
-        "pattern": "meshing"
+        "pattern": null
       },
       "maxRetries": 3
     },
     "step_006": {
       "id": "step_006",
-      "name": "Pick sun_gear_v1",
+      "name": "Pick satellite_top_v1",
       "partIds": [
-        "sun_gear_v1"
+        "satellite_top_v1"
       ],
       "dependencies": [
         "step_005"
@@ -389,7 +435,7 @@
       "handler": "primitive",
       "primitiveType": "pick",
       "primitiveParams": {
-        "part_id": "sun_gear_v1"
+        "part_id": "satellite_top_v1"
       },
       "policyId": null,
       "successCriteria": {
@@ -402,14 +448,15 @@
     },
     "step_007": {
       "id": "step_007",
-      "name": "Assemble sun_gear_v1",
+      "name": "Assemble satellite_top_v1",
       "partIds": [
-        "sun_gear_v1",
-        "satelite_gear_v1",
-        "satelite_gear_v1_4",
-        "6708_bearing_v1",
-        "satelite_gear_v1_3",
-        "satelite_gear_v1_2"
+        "satellite_top_v1",
+        "spur_gear_12_teeth",
+        "spur_gear_12_teeth_2",
+        "spur_gear_24_teeth",
+        "spur_gear_12_teeth_4",
+        "spur_gear_12_teeth_3",
+        "6708_bearing_v1"
       ],
       "dependencies": [
         "step_006"
@@ -428,9 +475,9 @@
     },
     "step_008": {
       "id": "step_008",
-      "name": "Pick satellite_base_v1",
+      "name": "Pick 6708_bearing_v1",
       "partIds": [
-        "satellite_base_v1"
+        "6708_bearing_v1"
       ],
       "dependencies": [
         "step_007"
@@ -438,7 +485,7 @@
       "handler": "primitive",
       "primitiveType": "pick",
       "primitiveParams": {
-        "part_id": "satellite_base_v1"
+        "part_id": "6708_bearing_v1"
       },
       "policyId": null,
       "successCriteria": {
@@ -451,33 +498,32 @@
     },
     "step_009": {
       "id": "step_009",
-      "name": "Assemble satellite_base_v1",
+      "name": "Assemble 6708_bearing_v1",
       "partIds": [
-        "satellite_base_v1",
+        "6708_bearing_v1",
+        "ring_gear_v1",
         "satellite_top_v1"
       ],
       "dependencies": [
         "step_008"
       ],
-      "handler": "primitive",
-      "primitiveType": "place",
-      "primitiveParams": {
-        "part_id": "satellite_base_v1"
-      },
+      "handler": "policy",
+      "primitiveType": null,
+      "primitiveParams": null,
       "policyId": null,
       "successCriteria": {
-        "type": "position",
+        "type": "force_signature",
         "threshold": null,
         "model": null,
-        "pattern": null
+        "pattern": "meshing"
       },
       "maxRetries": 3
     },
     "step_010": {
       "id": "step_010",
-      "name": "Pick satelite_gear_v1_2",
+      "name": "Pick spur_gear_24_teeth",
       "partIds": [
-        "satelite_gear_v1_2"
+        "spur_gear_24_teeth"
       ],
       "dependencies": [
         "step_009"
@@ -485,7 +531,7 @@
       "handler": "primitive",
       "primitiveType": "pick",
       "primitiveParams": {
-        "part_id": "satelite_gear_v1_2"
+        "part_id": "spur_gear_24_teeth"
       },
       "policyId": null,
       "successCriteria": {
@@ -498,11 +544,14 @@
     },
     "step_011": {
       "id": "step_011",
-      "name": "Assemble satelite_gear_v1_2",
+      "name": "Assemble spur_gear_24_teeth",
       "partIds": [
-        "satelite_gear_v1_2",
-        "ring_gear_v1",
-        "sun_gear_v1"
+        "spur_gear_24_teeth",
+        "satellite_top_v1",
+        "spur_gear_12_teeth",
+        "spur_gear_12_teeth_2",
+        "spur_gear_12_teeth_4",
+        "spur_gear_12_teeth_3"
       ],
       "dependencies": [
         "step_010"
@@ -512,18 +561,18 @@
       "primitiveParams": null,
       "policyId": null,
       "successCriteria": {
-        "type": "force_signature",
+        "type": "classifier",
         "threshold": null,
         "model": null,
-        "pattern": "meshing"
+        "pattern": null
       },
       "maxRetries": 3
     },
     "step_012": {
       "id": "step_012",
-      "name": "Pick satelite_gear_v1_3",
+      "name": "Pick spur_gear_12_teeth_4",
       "partIds": [
-        "satelite_gear_v1_3"
+        "spur_gear_12_teeth_4"
       ],
       "dependencies": [
         "step_011"
@@ -531,7 +580,7 @@
       "handler": "primitive",
       "primitiveType": "pick",
       "primitiveParams": {
-        "part_id": "satelite_gear_v1_3"
+        "part_id": "spur_gear_12_teeth_4"
       },
       "policyId": null,
       "successCriteria": {
@@ -544,11 +593,12 @@
     },
     "step_013": {
       "id": "step_013",
-      "name": "Assemble satelite_gear_v1_3",
+      "name": "Assemble spur_gear_12_teeth_4",
       "partIds": [
-        "satelite_gear_v1_3",
+        "spur_gear_12_teeth_4",
+        "spur_gear_24_teeth",
         "ring_gear_v1",
-        "sun_gear_v1"
+        "satellite_top_v1"
       ],
       "dependencies": [
         "step_012"
@@ -558,18 +608,18 @@
       "primitiveParams": null,
       "policyId": null,
       "successCriteria": {
-        "type": "force_signature",
+        "type": "classifier",
         "threshold": null,
         "model": null,
-        "pattern": "meshing"
+        "pattern": null
       },
       "maxRetries": 3
     },
     "step_014": {
       "id": "step_014",
-      "name": "Pick satelite_gear_v1_4",
+      "name": "Pick spur_gear_12_teeth_3",
       "partIds": [
-        "satelite_gear_v1_4"
+        "spur_gear_12_teeth_3"
       ],
       "dependencies": [
         "step_013"
@@ -577,7 +627,7 @@
       "handler": "primitive",
       "primitiveType": "pick",
       "primitiveParams": {
-        "part_id": "satelite_gear_v1_4"
+        "part_id": "spur_gear_12_teeth_3"
       },
       "policyId": null,
       "successCriteria": {
@@ -590,11 +640,12 @@
     },
     "step_015": {
       "id": "step_015",
-      "name": "Assemble satelite_gear_v1_4",
+      "name": "Assemble spur_gear_12_teeth_3",
       "partIds": [
-        "satelite_gear_v1_4",
+        "spur_gear_12_teeth_3",
+        "spur_gear_24_teeth",
         "ring_gear_v1",
-        "sun_gear_v1"
+        "satellite_top_v1"
       ],
       "dependencies": [
         "step_014"
@@ -604,18 +655,18 @@
       "primitiveParams": null,
       "policyId": null,
       "successCriteria": {
-        "type": "force_signature",
+        "type": "classifier",
         "threshold": null,
         "model": null,
-        "pattern": "meshing"
+        "pattern": null
       },
       "maxRetries": 3
     },
     "step_016": {
       "id": "step_016",
-      "name": "Pick satelite_gear_v1",
+      "name": "Pick satellite_base_v1",
       "partIds": [
-        "satelite_gear_v1"
+        "satellite_base_v1"
       ],
       "dependencies": [
         "step_015"
@@ -623,7 +674,7 @@
       "handler": "primitive",
       "primitiveType": "pick",
       "primitiveParams": {
-        "part_id": "satelite_gear_v1"
+        "part_id": "satellite_base_v1"
       },
       "policyId": null,
       "successCriteria": {
@@ -636,24 +687,24 @@
     },
     "step_017": {
       "id": "step_017",
-      "name": "Assemble satelite_gear_v1",
+      "name": "Assemble satellite_base_v1",
       "partIds": [
-        "satelite_gear_v1",
-        "ring_gear_v1",
-        "sun_gear_v1"
+        "satellite_base_v1"
       ],
       "dependencies": [
         "step_016"
       ],
-      "handler": "policy",
-      "primitiveType": null,
-      "primitiveParams": null,
+      "handler": "primitive",
+      "primitiveType": "place",
+      "primitiveParams": {
+        "part_id": "satellite_base_v1"
+      },
       "policyId": null,
       "successCriteria": {
-        "type": "force_signature",
+        "type": "position",
         "threshold": null,
         "model": null,
-        "pattern": "meshing"
+        "pattern": null
       },
       "maxRetries": 3
     }
@@ -676,5 +727,6 @@
     "step_015",
     "step_016",
     "step_017"
-  ]
+  ],
+  "unitScale": 0.001
 }
