@@ -21,6 +21,7 @@ from nextis.assembly.mesh_utils import (
     classify_geometry,
     color_for_part,
     compute_bounding_box,
+    compute_resting_rotation,
     tessellate_to_glb,
     trsf_to_pos_rot,
 )
@@ -234,6 +235,12 @@ class CADParser:
         contacts = self._detect_contacts(raw_parts)
 
         graph = AssemblyGraph(id=assembly_id, name=name, parts=parts)
+
+        # Compute initial layout positions (step_order not yet available)
+        from nextis.assembly.layout import compute_layout_positions
+
+        compute_layout_positions(graph)
+
         logger.info(
             "Built assembly graph '%s': %d parts, %d contacts",
             assembly_id,
@@ -294,9 +301,7 @@ class CADParser:
         # Resolve references
         ref_label = TDF_Label()
         actual_label = (
-            ref_label
-            if _st_call(shape_tool, "GetReferredShape", label, ref_label)
-            else label
+            ref_label if _st_call(shape_tool, "GetReferredShape", label, ref_label) else label
         )
 
         shape = _st_call(shape_tool, "GetShape", actual_label)
@@ -377,14 +382,18 @@ class CADParser:
         max_coord = max(abs(v) for pos in all_positions for v in pos)
         if max_coord > 1.0:  # Likely millimetres
             scale = 0.001
-            logger.info(
-                "Detected mm coordinates (max=%.1f), scaling to metres", max_coord
-            )
+            logger.info("Detected mm coordinates (max=%.1f), scaling to metres", max_coord)
             for part in parts.values():
                 if part.position:
                     part.position = [v * scale for v in part.position]
                 if part.dimensions:
                     part.dimensions = [v * scale for v in part.dimensions]
+            for part in parts.values():
+                logger.debug(
+                    "Normalized %s: pos=[%.4f, %.4f, %.4f]",
+                    part.id,
+                    *(part.position or [0, 0, 0]),
+                )
 
     # ------------------------------------------------------------------
     # Part processing
@@ -398,25 +407,35 @@ class CADParser:
     ) -> Part:
         """Convert a _RawPart into a Part model with mesh and geometry."""
         try:
-            center, extents, _ = compute_bounding_box(rp.shape)
+            _, extents, _ = compute_bounding_box(rp.shape)
         except Exception as exc:
             logger.warning("Bounding box failed for %s: %s", rp.part_id, exc)
-            center = [0.0, 0.0, 0.0]
             extents = [0.05, 0.05, 0.05]
 
-        # Part.position is in assembly-space coordinates (pre-recentering).
-        # The GLB mesh is centered at local origin by mesh_utils.tessellate_to_glb(),
-        # so Part.position is the sole placement — no offset baked into the mesh.
-        pos = rp.position if any(abs(v) > 1e-9 for v in rp.position) else center
+        layout_rot = compute_resting_rotation(rp.shape)
 
         geo_type, dims = classify_geometry(extents[0], extents[1], extents[2])
         color = color_for_part(rp.name, index)
 
-        # Tessellate to GLB
+        # Tessellate to GLB — must happen before position, because the mesh
+        # centroid is needed to compute the true assembled position.
         mesh_path = output_dir / f"{rp.part_id}.glb"
         mesh_file: str | None = None
-        if tessellate_to_glb(rp.shape, mesh_path, self._linear_deflection):
+        success, mesh_centroid = tessellate_to_glb(rp.shape, mesh_path, self._linear_deflection)
+        if success:
             mesh_file = f"/meshes/{assembly_id}/{rp.part_id}.glb"
+
+        # Position = XDE label transform + mesh centroid.
+        # Pattern A (geometry in assembly coords, label ≈ identity):
+        #   rp.position ≈ 0, mesh_centroid carries real position.
+        # Pattern B (geometry at local origin, label has real transform):
+        #   rp.position is real, mesh_centroid ≈ 0.
+        # Adding them handles both patterns correctly.
+        pos = [
+            round(rp.position[0] + mesh_centroid[0], 6),
+            round(rp.position[1] + mesh_centroid[1], 6),
+            round(rp.position[2] + mesh_centroid[2], 6),
+        ]
 
         return Part(
             id=rp.part_id,
@@ -427,6 +446,7 @@ class CADParser:
             geometry=geo_type,
             dimensions=dims,
             color=color,
+            layout_rotation=layout_rot,
         )
 
     # ------------------------------------------------------------------

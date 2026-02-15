@@ -58,18 +58,15 @@ class SequencePlanner:
             adjacency[a].add(b)
             adjacency[b].add(a)
 
-        # Sort parts by bounding volume (largest first = base)
-        sorted_parts = sorted(
-            graph.parts.values(),
-            key=lambda p: _part_volume(p),
-            reverse=True,
-        )
+        # Sort parts using geometric heuristics (base first, covers last)
+        sorted_parts = _compute_assembly_order(graph.parts)
 
         steps: dict[str, AssemblyStep] = {}
         step_num = 0
 
         # Base part: place it first (no pick needed)
         base = sorted_parts[0]
+        base.is_base = True
         step_num += 1
         base_step_id = f"step_{step_num:03d}"
         steps[base_step_id] = AssemblyStep(
@@ -131,6 +128,11 @@ class SequencePlanner:
 
         graph.steps = steps
         graph.step_order = step_order
+
+        # Recompute layout positions now that step_order is available
+        from nextis.assembly.layout import compute_layout_positions
+
+        compute_layout_positions(graph)
 
         logger.info(
             "Planned %d steps for assembly '%s' (%d parts)",
@@ -274,6 +276,101 @@ def assign_handlers(graph: AssemblyGraph) -> AssemblyGraph:
         ):
             step.handler = "policy"
     return graph
+
+
+def _compute_assembly_order(parts: dict[str, object]) -> list[object]:
+    """Sort parts into assembly order using geometric heuristics.
+
+    Rules (applied in priority order):
+        1. Base part (largest volume, excluding covers) always first.
+        2. Cover/lid parts (thin + wide) always last.
+        3. Interior parts sorted by vertical position (Y ascending, bottom-up),
+           ties broken by volume descending.
+
+    Args:
+        parts: Part catalog keyed by ID.
+
+    Returns:
+        Parts sorted in assembly order.
+    """
+    part_list = list(parts.values())
+    if len(part_list) <= 1:
+        return part_list
+
+    # Separate covers from non-covers
+    covers: list[object] = []
+    non_covers: list[object] = []
+    for p in part_list:
+        if _is_cover(p):
+            covers.append(p)
+        else:
+            non_covers.append(p)
+
+    # Base = largest non-cover by volume
+    if non_covers:
+        base = max(non_covers, key=lambda p: _part_volume(p))
+        interior = [p for p in non_covers if p.id != base.id]  # type: ignore[union-attr]
+    else:
+        # All parts are covers — pick largest as base
+        base = max(covers, key=lambda p: _part_volume(p))
+        covers = [p for p in covers if p.id != base.id]  # type: ignore[union-attr]
+        interior = []
+
+    # Sort interior by Y position ascending (bottom-up), then volume descending
+    interior.sort(key=lambda p: (_assembly_height(p), -_part_volume(p)))
+
+    # Sort covers by Y ascending
+    covers.sort(key=lambda p: (_assembly_height(p), -_part_volume(p)))
+
+    return [base] + interior + covers
+
+
+def _is_cover(part: object) -> bool:
+    """Detect if a part is a cover/lid (thin + wide).
+
+    A cover has one dimension much smaller than the others (flatness < 0.15)
+    and is not a known internal part type (bearing, gear, etc.).
+
+    Args:
+        part: Part to classify.
+
+    Returns:
+        True if the part appears to be a cover or lid.
+    """
+    from nextis.assembly.models import Part
+
+    assert isinstance(part, Part)
+
+    dims = part.dimensions or [0.05, 0.05, 0.05]
+    if len(dims) < 3:
+        return False
+
+    # Internal parts are never covers regardless of shape
+    name = part.id.lower()
+    if any(kw in name for kw in ("bearing", "gear", "pin", "shaft", "ring", "bushing")):
+        return False
+
+    sorted_dims = sorted(dims)
+    if sorted_dims[2] < 1e-9:
+        return False
+    flatness = sorted_dims[0] / sorted_dims[2]
+    return flatness < 0.15
+
+
+def _assembly_height(part: object) -> float:
+    """Get the vertical position (Y coordinate) of a part for sorting.
+
+    Args:
+        part: Part to query.
+
+    Returns:
+        Y-coordinate of the part's assembled position.
+    """
+    from nextis.assembly.models import Part
+
+    assert isinstance(part, Part)
+    pos = part.position or [0.0, 0.0, 0.0]
+    return pos[1]
 
 
 def _part_volume(part: object) -> float:

@@ -147,6 +147,47 @@ class TestCADParser:
         with pytest.raises(CADParseError, match="Expected .step/.stp"):
             parser.parse(bad_file, tmp_path / "meshes")
 
+    def test_tessellate_returns_centroid(self, tmp_path: Path):
+        """tessellate_to_glb returns (True, centroid) with correct centroid."""
+        from nextis.assembly.mesh_utils import tessellate_to_glb
+
+        # Box at offset position — centroid should be near (12.5, 22.5, 32.5)
+        box = BRepPrimAPI_MakeBox(gp_Pnt(10.0, 20.0, 30.0), 5.0, 5.0, 5.0).Shape()
+        output = tmp_path / "test_centroid.glb"
+        success, centroid = tessellate_to_glb(box, output)
+
+        assert success is True
+        assert len(centroid) == 3
+        assert abs(centroid[0] - 12.5) < 0.5
+        assert abs(centroid[1] - 22.5) < 0.5
+        assert abs(centroid[2] - 32.5) < 0.5
+
+    def test_tessellate_failure_returns_zero_centroid(self, tmp_path: Path):
+        """Failed tessellation returns (False, [0, 0, 0])."""
+        from nextis.assembly.mesh_utils import tessellate_to_glb
+
+        try:
+            from OCP.TopoDS import TopoDS_Shape
+        except ImportError:
+            from OCC.Core.TopoDS import TopoDS_Shape
+
+        empty_shape = TopoDS_Shape()
+        output = tmp_path / "empty.glb"
+        success, centroid = tessellate_to_glb(empty_shape, output)
+
+        assert success is False
+        assert centroid == [0.0, 0.0, 0.0]
+
+    def test_parse_positions_are_distinct(self, step_file_3parts: Path, tmp_path: Path):
+        """All parts in a multi-part assembly must have distinct positions."""
+        from nextis.assembly.cad_parser import CADParser
+
+        parser = CADParser()
+        result = parser.parse(step_file_3parts, tmp_path / "meshes")
+
+        positions = [tuple(p.position) for p in result.graph.parts.values()]
+        assert len(set(positions)) == len(positions), f"Parts have duplicate positions: {positions}"
+
     def test_assembly_graph_round_trip(self, step_file_3parts: Path, tmp_path: Path):
         """Graph from parser survives JSON serialize/deserialize."""
         from nextis.assembly.cad_parser import CADParser

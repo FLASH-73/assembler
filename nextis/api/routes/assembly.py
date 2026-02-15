@@ -77,6 +77,13 @@ async def list_assemblies() -> list[AssemblySummary]:
 async def get_assembly(assembly_id: str) -> dict[str, Any]:
     """Get the full assembly graph by ID."""
     graph = _load_assembly(assembly_id)
+
+    # Backfill layout positions for legacy assemblies
+    if any(p.layout_position is None for p in graph.parts.values()):
+        from nextis.assembly.layout import compute_layout_positions
+
+        compute_layout_positions(graph)
+
     return graph.model_dump(by_alias=True)
 
 
@@ -86,6 +93,13 @@ async def create_assembly(graph: AssemblyGraph) -> dict[str, str]:
     path = CONFIGS_DIR / f"{graph.id}.json"
     if path.exists():
         raise HTTPException(status_code=409, detail=f"Assembly '{graph.id}' already exists")
+
+    # Compute layout positions if any part is missing them
+    if any(p.layout_position is None for p in graph.parts.values()):
+        from nextis.assembly.layout import compute_layout_positions
+
+        compute_layout_positions(graph)
+
     graph.to_json_file(path)
     logger.info("Created assembly %s", graph.id)
     return {"status": "created", "id": graph.id}
@@ -273,7 +287,13 @@ async def analyze_assembly(
 
 
 _VALID_PRIMITIVE_TYPES = {
-    "move_to", "pick", "place", "guarded_move", "linear_insert", "screw", "press_fit",
+    "move_to",
+    "pick",
+    "place",
+    "guarded_move",
+    "linear_insert",
+    "screw",
+    "press_fit",
 }
 _VALID_CRITERIA_TYPES = {"position", "force_threshold", "force_signature", "classifier"}
 
