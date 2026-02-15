@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import logging
 import re
+import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -502,7 +503,8 @@ class CADParser:
             rp.shape, mesh_path, self._linear_deflection, unit_scale=unit_scale
         )
         if success:
-            mesh_file = f"/meshes/{assembly_id}/{rp.part_id}.glb"
+            # Append timestamp to bust drei/browser GLB cache on re-upload
+            mesh_file = f"/meshes/{assembly_id}/{rp.part_id}.glb?v={int(time.time())}"
 
         # Position = mesh bbox center (from located shape in assembly coords).
         # Rotation = [0,0,0] because the mesh vertices already include the

@@ -201,7 +201,7 @@ class TestCADParser:
         parts_with_mesh = [p for p in result.graph.parts.values() if p.mesh_file]
         assert len(parts_with_mesh) >= 1, "Expected at least one part with mesh_file"
         for part in parts_with_mesh:
-            assert part.mesh_file.endswith(".glb")
+            assert ".glb" in part.mesh_file
 
     def test_parse_single_part(self, step_file_single_box: Path, tmp_path: Path):
         from nextis.assembly.cad_parser import CADParser
