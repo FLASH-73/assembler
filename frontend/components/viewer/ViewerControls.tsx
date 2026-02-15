@@ -5,6 +5,8 @@ interface ViewerControlsProps {
   onToggleExplode: () => void;
   wireframe: boolean;
   onToggleWireframe: () => void;
+  showGround: boolean;
+  onToggleGround: () => void;
   animating: boolean;
   paused: boolean;
   onToggleAnimation: () => void;
@@ -45,6 +47,8 @@ export function ViewerControls({
   onToggleExplode,
   wireframe,
   onToggleWireframe,
+  showGround,
+  onToggleGround,
   animating,
   paused,
   onToggleAnimation,
@@ -78,6 +82,13 @@ export function ViewerControls({
           <rect x="3" y="3" width="10" height="10" />
           <line x1="8" y1="3" x2="8" y2="13" />
           <line x1="3" y1="8" x2="13" y2="8" />
+        </svg>
+      </IconButton>
+
+      <IconButton title="Toggle ground plane" active={showGround} onClick={onToggleGround}>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+          <path d="M2 12L8 8L14 12" />
+          <path d="M2 12L8 14L14 12" />
         </svg>
       </IconButton>
 

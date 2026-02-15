@@ -126,15 +126,17 @@ function computeLayout(parts: { position?: number[]; layoutPosition?: number[]; 
 
   if (radius < 0.001) return DEFAULTS;
 
+  const gridCell = radius * 0.04;
+  const gridSection = radius * 0.2;
   return {
     cameraPos: [cx + radius * 1.5, cy + radius * 1.2, cz + radius * 1.5],
     target: [cx, cy, cz],
     near: radius * 0.001,
     far: radius * 40,
     maxDist: radius * 15,
-    groundY: 0,
-    gridCell: radius * 0.04,
-    gridSection: radius * 0.2,
+    groundY: minY - gridCell * 0.5,
+    gridCell,
+    gridSection,
   };
 }
 
@@ -149,6 +151,7 @@ export function AssemblyViewer() {
 
   const [exploded, setExploded] = useState(false);
   const [wireframe, setWireframe] = useState(false);
+  const [showGround, setShowGround] = useState(true);
 
   const parts = useMemo(() => (assembly ? Object.values(assembly.parts) : []), [assembly]);
   const stepOrder = assembly?.stepOrder ?? [];
@@ -269,14 +272,16 @@ export function AssemblyViewer() {
         <directionalLight position={[-3, 4, -2]} intensity={0.3} />
         <directionalLight position={[0, -2, 5]} intensity={0.15} />
         <Environment preset="studio" environmentIntensity={0.3} />
-        <GroundPlane
-          groundY={layout.groundY}
-          cellSize={layout.gridCell}
-          sectionSize={layout.gridSection}
-          surfaceWidth={Math.max(workspaceRadius * 5, 0.5)}
-          surfaceDepth={Math.max(workspaceRadius * 4, 0.4)}
-          assemblyRadius={assemblyRadius}
-        />
+        {showGround && (
+          <GroundPlane
+            groundY={layout.groundY}
+            cellSize={layout.gridCell}
+            sectionSize={layout.gridSection}
+            surfaceWidth={Math.max(workspaceRadius * 5, 0.5)}
+            surfaceDepth={Math.max(workspaceRadius * 4, 0.4)}
+            assemblyRadius={assemblyRadius}
+          />
+        )}
 
         <AnimationController
           parts={parts}
@@ -351,6 +356,8 @@ export function AssemblyViewer() {
         onToggleExplode={() => setExploded((e) => !e)}
         wireframe={wireframe}
         onToggleWireframe={() => setWireframe((w) => !w)}
+        showGround={showGround}
+        onToggleGround={() => setShowGround((g) => !g)}
         animating={anim.isAnimating}
         paused={anim.isPaused}
         onToggleAnimation={anim.toggleAnimation}
