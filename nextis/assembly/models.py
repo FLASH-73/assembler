@@ -38,6 +38,8 @@ class Part(BaseModel):
         geometry: Placeholder shape — "box", "cylinder", or "sphere".
         dimensions: Shape-specific dims (box=[w,h,d], cylinder=[r,h], sphere=[r]).
         color: Hex colour string for placeholder rendering.
+        layout_position: [x, y, z] pre-assembly tray position in metres, or None.
+        is_base: Whether this part is the base/fixture that stays centered.
     """
 
     model_config = ConfigDict(populate_by_name=True)
@@ -51,6 +53,9 @@ class Part(BaseModel):
     geometry: str | None = None
     dimensions: list[float] | None = None
     color: str | None = None
+    layout_position: list[float] | None = Field(None, alias="layoutPosition")
+    layout_rotation: list[float] | None = Field(None, alias="layoutRotation")
+    is_base: bool = Field(False, alias="isBase")
 
 
 class SuccessCriteria(BaseModel):

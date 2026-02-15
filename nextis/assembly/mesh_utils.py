@@ -22,9 +22,13 @@ logger = logging.getLogger(__name__)
 try:
     from OCP.Bnd import Bnd_Box
     from OCP.BRep import BRep_Tool
+    from OCP.BRepAdaptor import BRepAdaptor_Surface
     from OCP.BRepBndLib import BRepBndLib as brepbndlib
+    from OCP.BRepGProp import BRepGProp
     from OCP.BRepMesh import BRepMesh_IncrementalMesh
-    from OCP.TopAbs import TopAbs_FACE
+    from OCP.GeomAbs import GeomAbs_Plane
+    from OCP.GProp import GProp_GProps
+    from OCP.TopAbs import TopAbs_FACE, TopAbs_REVERSED
     from OCP.TopExp import TopExp_Explorer
     from OCP.TopLoc import TopLoc_Location
     from OCP.TopoDS import TopoDS as _topods_cast
@@ -34,9 +38,13 @@ except ImportError:
     try:
         from OCC.Core.Bnd import Bnd_Box
         from OCC.Core.BRep import BRep_Tool
+        from OCC.Core.BRepAdaptor import BRepAdaptor_Surface
         from OCC.Core.BRepBndLib import brepbndlib
+        from OCC.Core.BRepGProp import BRepGProp
         from OCC.Core.BRepMesh import BRepMesh_IncrementalMesh
-        from OCC.Core.TopAbs import TopAbs_FACE
+        from OCC.Core.GeomAbs import GeomAbs_Plane
+        from OCC.Core.GProp import GProp_GProps
+        from OCC.Core.TopAbs import TopAbs_FACE, TopAbs_REVERSED
         from OCC.Core.TopExp import TopExp_Explorer
         from OCC.Core.TopLoc import TopLoc_Location
 
@@ -57,6 +65,7 @@ except ImportError:
 def _static(cls: Any, method: str) -> Any:
     """Get a static method from an OCC class, trying OCP '_s' suffix first."""
     return getattr(cls, f"{method}_s", None) or getattr(cls, method)
+
 
 # ---------------------------------------------------------------------------
 # Colour palette for parts
@@ -193,14 +202,131 @@ def compute_bounding_box(
 
 
 # ---------------------------------------------------------------------------
+# Resting orientation
+# ---------------------------------------------------------------------------
+def _normal_to_down_euler(normal: tuple[float, float, float]) -> list[float]:
+    """Compute Euler XYZ angles to rotate a normal vector to point -Y (down).
+
+    Uses Rodrigues' rotation: find the axis and angle that maps the face
+    normal to [0, -1, 0], then decompose to Euler XYZ.  The decomposition
+    matches ``trsf_to_pos_rot`` exactly.
+
+    Args:
+        normal: Unit normal vector (nx, ny, nz) of the face to place down.
+
+    Returns:
+        [rx, ry, rz] in radians.
+    """
+    nx, ny, nz = normal
+    length = math.sqrt(nx * nx + ny * ny + nz * nz)
+    if length < 1e-9:
+        return [0.0, 0.0, 0.0]
+    nx, ny, nz = nx / length, ny / length, nz / length
+
+    # dot(normal, [0, -1, 0]) = -ny
+    dot = -ny
+    if dot > 0.9999:
+        return [0.0, 0.0, 0.0]
+    if dot < -0.9999:
+        return [round(math.pi, 6), 0.0, 0.0]
+
+    # cross(normal, [0, -1, 0]) = [nz, 0, -nx]  (ay=0)
+    ax, az = nz, -nx
+    axis_len = math.sqrt(ax * ax + az * az)
+    if axis_len < 1e-9:
+        return [0.0, 0.0, 0.0]
+    ax /= axis_len
+    az /= axis_len
+
+    angle = math.acos(max(-1.0, min(1.0, dot)))
+    c = math.cos(angle)
+    s = math.sin(angle)
+    t = 1.0 - c
+
+    # Rotation matrix with ay=0
+    r11 = t * ax * ax + c
+    r21 = s * az
+    r22 = c
+    r23 = -s * ax
+    r31 = t * az * ax
+    r32 = s * ax
+    r33 = t * az * az + c
+
+    # Euler XYZ — same convention as trsf_to_pos_rot
+    ry = math.asin(max(-1.0, min(1.0, -r31)))
+    if abs(math.cos(ry)) > 1e-6:
+        rx = math.atan2(r32, r33)
+        rz = math.atan2(r21, r11)
+    else:
+        rx = math.atan2(-r23, r22)
+        rz = 0.0
+
+    return [round(rx, 6), round(ry, 6), round(rz, 6)]
+
+
+def compute_resting_rotation(shape: Any) -> list[float]:
+    """Compute Euler XYZ rotation to rest a shape on its largest flat face.
+
+    Iterates all faces of the shape, finds the largest planar face, and
+    computes the rotation that aligns that face's outward normal to -Y
+    (pointing down), so the part rests stably on the work surface.
+
+    Args:
+        shape: OCC TopoDS_Shape to analyze.
+
+    Returns:
+        [rx, ry, rz] Euler angles in radians.  [0, 0, 0] if no planar
+        face is found or on error.
+    """
+    if not HAS_OCC:
+        return [0.0, 0.0, 0.0]
+
+    try:
+        best_area = 0.0
+        best_normal: tuple[float, float, float] = (0.0, -1.0, 0.0)
+
+        explorer = TopExp_Explorer(shape, TopAbs_FACE)
+        while explorer.More():
+            face = explorer.Current()
+            surf = BRepAdaptor_Surface(face, True)
+
+            if surf.GetType() == GeomAbs_Plane:
+                props = GProp_GProps()
+                _static(BRepGProp, "SurfaceProperties")(face, props)
+                area = props.Mass()
+
+                if area > best_area:
+                    best_area = area
+                    plane = surf.Plane()
+                    normal = plane.Axis().Direction()
+                    if face.Orientation() == TopAbs_REVERSED:
+                        normal.Reverse()
+                    best_normal = (normal.X(), normal.Y(), normal.Z())
+
+            explorer.Next()
+
+        if best_area < 1e-12:
+            return [0.0, 0.0, 0.0]
+
+        return _normal_to_down_euler(best_normal)
+
+    except Exception as exc:
+        logger.warning("Resting rotation computation failed: %s", exc)
+        return [0.0, 0.0, 0.0]
+
+
+# ---------------------------------------------------------------------------
 # Tessellation → GLB
 # ---------------------------------------------------------------------------
 def tessellate_to_glb(
     shape: Any,
     output_path: Path,
     linear_deflection: float = 0.001,
-) -> bool:
+) -> tuple[bool, list[float]]:
     """Tessellate an OCC shape and export as GLB via trimesh.
+
+    The mesh is centered at local origin (centroid subtracted).  Returns
+    the centroid offset so the caller can reconstruct the world position.
 
     Args:
         shape: OCC TopoDS_Shape to tessellate.
@@ -208,11 +334,13 @@ def tessellate_to_glb(
         linear_deflection: Mesh density (metres). Lower = finer.
 
     Returns:
-        True if export succeeded, False otherwise.
+        Tuple of (success, centroid_xyz).  centroid_xyz is the mean of
+        tessellated vertex positions in the original coordinate frame,
+        or [0, 0, 0] if tessellation failed.
     """
     if not HAS_TRIMESH:
         logger.warning("trimesh not installed, skipping GLB export")
-        return False
+        return False, [0.0, 0.0, 0.0]
 
     try:
         BRepMesh_IncrementalMesh(shape, linear_deflection)
@@ -235,6 +363,9 @@ def tessellate_to_glb(
                 nb_nodes = triangulation.NbNodes()
                 nb_tris = triangulation.NbTriangles()
 
+                # Reversed faces have inward normals — flip winding to fix
+                is_reversed = face.Orientation() == TopAbs_REVERSED
+
                 for i in range(1, nb_nodes + 1):
                     pt = triangulation.Node(i)
                     pt.Transform(trsf)
@@ -243,6 +374,8 @@ def tessellate_to_glb(
                 for i in range(1, nb_tris + 1):
                     tri = triangulation.Triangle(i)
                     n1, n2, n3 = tri.Get()
+                    if is_reversed:
+                        n1, n2 = n2, n1
                     all_faces.append(
                         [
                             n1 - 1 + offset,
@@ -260,7 +393,7 @@ def tessellate_to_glb(
                 "Tessellation produced no geometry for %s",
                 output_path.name,
             )
-            return False
+            return False, [0.0, 0.0, 0.0]
 
         verts = np.array(all_verts, dtype=np.float64)
         faces = np.array(all_faces, dtype=np.int64)
@@ -269,6 +402,7 @@ def tessellate_to_glb(
         # OCC face transforms may include assembly-level placement, causing
         # double-positioning when the frontend also applies Part.position.
         centroid = verts.mean(axis=0)
+        centroid_list = [round(float(c), 6) for c in centroid]
         if np.linalg.norm(centroid) > 1e-6:
             verts -= centroid
             logger.debug(
@@ -289,15 +423,17 @@ def tessellate_to_glb(
         )
 
         mesh = trimesh.Trimesh(vertices=verts, faces=faces)
+        trimesh.repair.fix_normals(mesh)
         mesh.export(str(output_path), file_type="glb")
         logger.debug(
-            "Exported GLB: %s (%d verts, %d faces)",
+            "Exported GLB: %s (%d verts, %d faces, watertight=%s)",
             output_path.name,
             len(verts),
             len(faces),
+            mesh.is_watertight,
         )
-        return True
+        return True, centroid_list
 
     except Exception as exc:
         logger.warning("GLB export failed for %s: %s", output_path.name, exc)
-        return False
+        return False, [0.0, 0.0, 0.0]
