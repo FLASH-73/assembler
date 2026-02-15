@@ -85,7 +85,7 @@ class PolicyRouter:
                 robot=self._robot,
                 params=step.primitive_params,
             )
-            return StepResult(
+            step_result = StepResult(
                 success=result.success,
                 duration_ms=result.duration_ms,
                 handler_used="primitive",
@@ -94,6 +94,18 @@ class PolicyRouter:
                 actual_position=result.actual_position,
                 force_history=result.force_history,
             )
+
+            # In mock mode, enrich with realistic telemetry for the verifier.
+            if self._robot is None:
+                from nextis.hardware.mock import MockRobot
+
+                mock = MockRobot()
+                mock_data = mock.generate_execution_data(step, force_success=step_result.success)
+                step_result.actual_force = mock_data.peak_force
+                step_result.actual_position = mock_data.final_position
+                step_result.force_history = [[f] for f in mock_data.force_history]
+
+            return step_result
         except Exception as e:
             logger.error("Primitive '%s' failed on step %s: %s", step.primitive_type, step.id, e)
             return StepResult(
