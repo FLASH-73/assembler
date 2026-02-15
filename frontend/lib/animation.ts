@@ -266,7 +266,7 @@ export function partStepIndex(
 ): number {
   for (let i = 0; i < stepOrder.length; i++) {
     const sid = stepOrder[i];
-    if (sid && steps[sid]?.partIds.includes(partId)) return i;
+    if (sid && steps[sid]?.partIds[0] === partId) return i;
   }
   return -1;
 }

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
-import { OrbitControls, Environment } from "@react-three/drei";
+import { OrbitControls, Environment, GizmoHelper, GizmoViewport } from "@react-three/drei";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { MOUSE, TOUCH } from "three";
 import type { PerspectiveCamera } from "three";
@@ -222,7 +222,7 @@ export function AssemblyViewer() {
   const handlePartClick = useCallback(
     (partId: string) => {
       if (!assembly) return;
-      const stepId = assembly.stepOrder.find((sid) => assembly.steps[sid]?.partIds.includes(partId));
+      const stepId = assembly.stepOrder.find((sid) => assembly.steps[sid]?.partIds[0] === partId);
       selectStep(stepId ?? null);
     },
     [assembly, selectStep],
@@ -255,7 +255,7 @@ export function AssemblyViewer() {
       <ViewerErrorBoundary>
       <Canvas
         camera={{ position: layout.cameraPos, fov: 45, near: layout.near, far: layout.far }}
-        style={{ background: "radial-gradient(ellipse at 45% 40%, #FEFDFB 0%, #F9F7F3 80%)" }}
+        style={{ background: "radial-gradient(ellipse at 45% 40%, #FAF9F7 0%, #F0EDE8 100%)" }}
         shadows
         eventPrefix="offset"
       >
@@ -347,6 +347,14 @@ export function AssemblyViewer() {
           touches={{ ONE: TOUCH.ROTATE, TWO: TOUCH.DOLLY_PAN }}
           makeDefault
         />
+
+        <GizmoHelper alignment="bottom-left" margin={[60, 60]}>
+          <GizmoViewport
+            axisColors={["#C2410C", "#16A34A", "#0369A1"]}
+            labelColor="white"
+            hideNegativeAxes
+          />
+        </GizmoHelper>
       </Canvas>
 
       {executionActive && <ExecutionProgressHUD />}

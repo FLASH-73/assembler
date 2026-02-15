@@ -17,6 +17,7 @@ import {
   MOCK_ASSEMBLY,
   MOCK_EXECUTION_STATE,
   MOCK_STEP_METRICS,
+  MOCK_SUMMARIES,
 } from "./mock-data";
 import { recordingEvents } from "./recording-events";
 
@@ -137,9 +138,14 @@ async function withMockFallback<T>(fetcher: () => Promise<T>, fallback: T): Prom
 }
 
 export const api = {
-  // --- Raw fetchers for SWR (errors propagate to SWR) ---
-  fetchAssemblySummaries: () => get<AssemblySummary[]>("/assemblies"),
-  fetchAssembly: (id: string) => get<Assembly>(`/assemblies/${id}`),
+  // --- SWR fetchers with mock fallback for offline/demo mode ---
+  fetchAssemblySummaries: () =>
+    withMockFallback(() => get<AssemblySummary[]>("/assemblies"), MOCK_SUMMARIES),
+  fetchAssembly: (id: string) =>
+    withMockFallback(
+      () => get<Assembly>(`/assemblies/${id}`),
+      MOCK_ASSEMBLIES.find((a) => a.id === id) ?? MOCK_ASSEMBLY,
+    ),
   fetchHealth: () => get<{ status: string }>("/health"),
   fetchSystemInfo: () => get<SystemInfo>("/system/info"),
 
